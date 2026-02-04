@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>TIKO — Autenticación</title>
+
+<!-- Firebase compat (Auth + Firestore) -->
+<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore-compat.js"></script>
+
+<style>
+  :root{--accent1:#2563eb;--accent2:#06b6d4;--muted:#6b7280;--radius:14px}
+  body{margin:0;font-family:Inter,Arial,Helvetica;background:linear-gradient(180deg,#071036,#082b4a);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px;color:#07203a}
+  .card{width:100%;max-width:420px;border-radius:14px;padding:18px;background:linear-gradient(135deg,rgba(255,255,255,0.98),rgba(229,246,255,0.95));box-shadow:0 10px 30px rgba(2,6,23,0.6);position:relative;overflow:hidden}
+  .card::before{content:"🐶 🐱 🐾 🐕 🐈 🩺 💉";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:44px;opacity:0.16;transform:rotate(-10deg);pointer-events:none}
+  h1{margin:0 0 8px;font-size:20px;text-align:center}
+  p.sub{margin:0 0 14px;text-align:center;color:var(--muted)}
+  label{display:block;font-size:13px;color:var(--muted);margin-top:8px}
+  input,select{width:100%;padding:10px;border-radius:10px;border:1px solid #e6eefb;margin-top:6px;font-size:15px;background:white}
+  .row{display:flex;gap:8px}
+  button{width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(90deg,var(--accent1),var(--accent2));color:white;font-weight:700;font-size:15px;margin-top:12px;cursor:pointer}
+  .ghost{background:transparent;border:1px solid rgba(2,6,23,0.06);color:var(--accent1)}
+  .hint{font-size:13px;color:#475569;margin-top:10px}
+  .small{font-size:13px;color:#9aa6bd;text-align:center;margin-top:8px}
+  .ok{color:green}
+  .err{color:#b91c1c}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+
+<div class="card" id="card-auth">
+  <h1>T I K O</h1>
+  <p class="sub">Conexión Peluda — Inicia sesión o crea cuenta</p>
+
+  <!-- Login -->
+  <div id="loginBox">
+    <label>Correo</label>
+    <input id="loginEmail" type="email" placeholder="correo@ejemplo.com">
+    <label>Contraseña</label>
+    <input id="loginPass" type="password" placeholder="Tu contraseña">
+    <button id="btnLogin">🔐 Iniciar sesión</button>
+    <div class="small">¿No tienes cuenta? <a href="#" id="showRegister">Crear cuenta</a></div>
+    <div id="loginMsg" class="hint"></div>
+  </div>
+
+  <!-- Register -->
+  <div id="registerBox" class="hidden">
+    <label>Nombre completo</label>
+    <input id="regName" type="text" placeholder="Ej. Juan Pérez">
+    <label>Correo</label>
+    <input id="regEmail" type="email" placeholder="correo@ejemplo.com">
+    <label>Teléfono (opcional)</label>
+    <input id="regPhone" type="tel" placeholder="55 1234 5678">
+    <div class="row">
+      <div style="flex:1">
+        <label>Contraseña</label>
+        <input id="regPass" type="password">
+      </div>
+      <div style="flex:1">
+        <label>Confirmar</label>
+        <input id="regConfirm" type="password">
+      </div>
+    </div>
+
+    <label>¿Eres?</label>
+    <select id="regRole">
+      <option value="usuario">Dueño</option>
+      <option value="tecnico">Técnico</option>
+      <option value="veterinaria">Veterinaria/Clínica</option>
+    </select>
+
+    <label>Código especial (opcional)</label>
+    <input id="regCode" placeholder="Código técnico/clínica (si tienes)">
+
+    <button id="btnRegister">🔐 Crear cuenta</button>
+    <div class="small"><a href="#" id="showLogin">Volver al login</a></div>
+    <div id="regMsg" class="hint"></div>
+  </div>
+
+  <div id="footer" class="hint" style="margin-top:10px;text-align:center">© TIKO</div>
+</div>
+
+<script>
+  // ======= CONFIGURA ESTO =======
+  const firebaseConfig = {
+    apiKey: "TU_API_KEY",
+    authDomain: "TU_PROYECTO.firebaseapp.com",
+    projectId: "TU_PROYECTO",
+    storageBucket: "TU_PROYECTO.appspot.com",
+    messagingSenderId: "XXXX",
+    appId: "1:XXX:web:XXXX"
+  };
+  // ==============================
+
+  // Inicializa Firebase
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  // Util: comunicar con App Inventor (si existe)
+  function sendToAppInventor(obj){
+    const msg = JSON.stringify(obj);
+    if (window.AppInventor && window.AppInventor.setWebViewString){
+      window.AppInventor.setWebViewString(msg);
+    } else {
+      // fallback: cambia título (útil al probar en navegador)
+      document.title = 'TIKO_MSG:' + msg;
+    }
+  }
+
+  // UI
+  const loginBox = document.getElementById('loginBox');
+  const registerBox = document.getElementById('registerBox');
+  const showRegisterLink = document.getElementById('showRegister');
+  const showLoginLink = document.getElementById('showLogin');
+  const loginMsg = document.getElementById('loginMsg');
+  const regMsg = document.getElementById('regMsg');
+
+  showRegisterLink.onclick = (e)=>{ e.preventDefault(); loginBox.classList.add('hidden'); registerBox.classList.remove('hidden'); }
+  showLoginLink.onclick = (e)=>{ e.preventDefault(); registerBox.classList.add('hidden'); loginBox.classList.remove('hidden'); }
+
+  // LOGIN
+  document.getElementById('btnLogin').onclick = async ()=>{
+    loginMsg.textContent = ''; loginMsg.className='hint';
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPass').value;
+    if (!email || !pass){ loginMsg.textContent='Completa correo y contraseña'; loginMsg.className='hint err'; return; }
+    try{
+      const cred = await auth.signInWithEmailAndPassword(email, pass);
+      const uid = cred.user.uid;
+      const doc = await db.collection('usuarios').doc(uid).get();
+      const profile = doc.exists ? doc.data() : {email};
+      // enviar resultado a App Inventor
+      sendToAppInventor({type:'login_success', uid, email, profile});
+      loginMsg.textContent = 'Inicio correcto';
+      loginMsg.className = 'hint ok';
+    }catch(err){
+      loginMsg.textContent = 'Error: ' + err.message;
+      loginMsg.className='hint err';
+      sendToAppInventor({type:'login_fail', message: err.message});
+    }
+  };
+
+  // REGISTER
+  document.getElementById('btnRegister').onclick = async ()=>{
+    regMsg.textContent=''; regMsg.className='hint';
+    const name = document.getElementById('regName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const phone = document.getElementById('regPhone').value.trim();
+    const pass = document.getElementById('regPass').value;
+    const confirm = document.getElementById('regConfirm').value;
+    const role = document.getElementById('regRole').value;
+    const code = document.getElementById('regCode').value.trim();
+
+    if (!name || !email || !pass){ regMsg.textContent='Completa los campos obligatorios'; regMsg.className='hint err'; return; }
+    if (pass.length < 6){ regMsg.textContent='Contraseña mínima 6 caracteres'; regMsg.className='hint err'; return; }
+    if (pass !== confirm){ regMsg.textContent='Las contraseñas no coinciden'; regMsg.className='hint err'; return; }
+
+    try{
+      const cred = await auth.createUserWithEmailAndPassword(email, pass);
+      const uid = cred.user.uid;
+      // guarda perfil en Firestore
+      await db.collection('usuarios').doc(uid).set({
+        nombre:name,
+        email:email,
+        telefono: phone || '',
+        rol: role || 'usuario',
+        creadoEn: firebase.firestore.FieldValue.serverTimestamp(),
+        codigoIngresado: code || ''
+      });
+      sendToAppInventor({type:'register_success', uid, email, name, role});
+      regMsg.textContent = 'Registro exitoso';
+      regMsg.className = 'hint ok';
+      // opcional: redirigir o mostrar login
+      setTimeout(()=>{ registerBox.classList.add('hidden'); loginBox.classList.remove('hidden'); }, 900);
+    }catch(err){
+      regMsg.textContent = 'Error: ' + err.message;
+      regMsg.className='hint err';
+      sendToAppInventor({type:'register_fail', message: err.message});
+    }
+  };
+
+  // detecta si ya hay usuario logueado (al cargar)
+  auth.onAuthStateChanged(async user=>{
+    if (user){
+      const doc = await db.collection('usuarios').doc(user.uid).get();
+      const profile = doc.exists ? doc.data() : {};
+      sendToAppInventor({type:'already_logged', uid:user.uid, profile});
+    } else {
+      // nada
+    }
+  });
+
+</script>
+</body>
+</html>
