@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TIKO - Historial Médico</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:linear-gradient(180deg,#0f172a,#1e3a8a);
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+}
+
+.card{
+width:92%;
+max-width:430px;
+background:linear-gradient(135deg,#ffffff,#e0f2fe);
+border-radius:24px;
+padding:25px;
+box-shadow:0 15px 40px rgba(0,0,0,.45);
+text-align:center;
+position:relative;
+overflow:hidden;
+}
+
+.card::before{
+content:"🩺 🐾 💊 🐶 🐱";
+position:absolute;
+inset:0;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:52px;
+opacity:0.14;
+pointer-events:none;
+}
+
+input, textarea{
+width:100%;
+padding:12px;
+margin-top:10px;
+border-radius:12px;
+border:1px solid #ccc;
+font-size:15px;
+}
+
+button{
+width:100%;
+padding:14px;
+margin-top:14px;
+border-radius:14px;
+border:none;
+font-size:16px;
+font-weight:bold;
+background:linear-gradient(90deg,#2563eb,#06b6d4);
+color:white;
+}
+
+.back{
+background:#64748b;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<h2>🩺 Historial Médico</h2>
+
+<input placeholder="Nombre del padecimiento">
+<input placeholder="Tipo (crónico, temporal, alergia...)">
+<input placeholder="Medicamento / Tratamiento">
+<textarea rows="3" placeholder="Notas importantes"></textarea>
+
+<button>➕ Guardar historial</button>
+
+<button class="back" onclick="volver()">⬅ Volver</button>
+
+</div>
+
+<script>
+function volver(){
+window.location.href="home.html";
+}
+</script>
+
+</body>
+</html>
