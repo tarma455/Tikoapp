@@ -1,131 +1,137 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-
-<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
-
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>TIKO — Inicio</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TIKO — Home</title>
 
 <style>
-:root{--accent1:#2563eb;--accent2:#06b6d4}
+:root{
+ --c1:#2563eb;
+ --c2:#06b6d4;
+ --c3:#22c55e;
+ --c4:#f59e0b;
+ --radius:16px;
+}
 
 body{
-margin:0;
-background:linear-gradient(180deg,#081b3a,#0f3b6d);
-min-height:100vh;
-display:flex;
-justify-content:center;
-align-items:center;
-font-family:Arial;
+ margin:0;
+ min-height:100vh;
+ background:linear-gradient(180deg,#071036,#082b4a);
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ font-family:Arial;
 }
 
 .card{
-width:100%;
-max-width:420px;
-padding:20px;
-border-radius:18px;
-background:linear-gradient(135deg,#ffffff,#dff1ff);
-box-shadow:0 10px 30px rgba(0,0,0,.6);
-position:relative;
-overflow:hidden;
+ width:100%;
+ max-width:420px;
+ padding:22px;
+ border-radius:18px;
+ background:linear-gradient(135deg,rgba(255,255,255,.96),rgba(230,246,255,.96));
+ box-shadow:0 15px 40px rgba(0,0,0,.6);
+ position:relative;
+ overflow:hidden;
 }
 
 .card::before{
-content:"🐶 🐱 🐾 🐕 🐈 🩺 💉";
-position:absolute;
-inset:0;
-display:flex;
-justify-content:center;
-align-items:center;
-font-size:44px;
-opacity:.22;
-pointer-events:none;
+ content:"🐶 🐱 🐾 💉 🩺 🐕 🐈";
+ position:absolute;
+ inset:0;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ font-size:50px;
+ opacity:.18;
+ pointer-events:none;
 }
 
 h1{
-text-align:center;
-margin:0;
+ text-align:center;
+ margin-top:0;
 }
 
 .grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:14px;
-margin-top:20px;
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:14px;
+ margin-top:20px;
 }
 
 .btn{
-padding:22px;
-border-radius:16px;
-background:linear-gradient(90deg,#2563eb,#06b6d4);
-color:white;
-font-size:16px;
-font-weight:bold;
-border:none;
-cursor:pointer;
+ border:none;
+ padding:20px 10px;
+ border-radius:16px;
+ font-size:16px;
+ font-weight:700;
+ color:white;
+ cursor:pointer;
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ gap:8px;
 }
 
 .btn span{
-display:block;
-font-size:28px;
-margin-bottom:6px;
+ font-size:30px;
 }
 
-.footer{
-margin-top:20px;
-text-align:center;
-font-size:13px;
-color:#555;
-}
+.mascotas{background:linear-gradient(90deg,#3b82f6,#06b6d4);}
+.cartilla{background:linear-gradient(90deg,#22c55e,#4ade80);}
+.perfil{background:linear-gradient(90deg,#f59e0b,#fbbf24);}
+.salir{background:linear-gradient(90deg,#ef4444,#f87171);}
+
 </style>
 </head>
 
 <body>
 
 <div class="card">
+  <h1>🐾 Bienvenido a TIKO</h1>
+  <p style="text-align:center;color:#555;">Selecciona una opción</p>
 
-<h1>T I K O</h1>
-<p style="text-align:center">Panel principal</p>
+  <div class="grid">
 
-<div class="grid">
+    <button class="btn mascotas" onclick="irMascotas()">
+      <span>🐶</span>
+      Mascotas
+    </button>
 
-<button class="btn" onclick="go('mascotas.html')">
-<span>🐶</span>
-Mascotas
-</button>
+    <button class="btn cartilla" onclick="irCartilla()">
+      <span>💉</span>
+      Cartilla
+    </button>
 
-<button class="btn" onclick="go('cartilla.html')">
-<span>📋</span>
-Cartilla
-</button>
+    <button class="btn perfil" onclick="irPerfil()">
+      <span>👤</span>
+      Perfil
+    </button>
 
-<button class="btn" onclick="go('scan.html')">
-<span>🔍</span>
-Escanear QR
-</button>
+    <button class="btn salir" onclick="cerrarSesion()">
+      <span>🚪</span>
+      Salir
+    </button>
 
-<button class="btn" onclick="go('perfil.html')">
-<span>👤</span>
-Perfil
-</button>
-
-</div>
-
-<div class="footer">TIKO • Conexión Peluda</div>
-
+  </div>
 </div>
 
 <script>
-function go(pagina){
-  if(window.AppInventor){
-    window.AppInventor.setWebViewString(
-      JSON.stringify({tipo:"abrir",pantalla:pagina})
-    );
-  }else{
-    location.href=pagina;
-  }
+function irMascotas(){
+  window.location.href="mascotas.html";
+}
+
+function irCartilla(){
+  window.location.href="cartilla.html";
+}
+
+function irPerfil(){
+  window.location.href="perfil.html";
+}
+
+function cerrarSesion(){
+  window.location.href="login.html";
 }
 </script>
 
