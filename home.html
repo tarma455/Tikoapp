@@ -1,137 +1,99 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TIKO — Home</title>
+<title>TIKO - Home</title>
 
 <style>
-:root{
- --c1:#2563eb;
- --c2:#06b6d4;
- --c3:#22c55e;
- --c4:#f59e0b;
- --radius:16px;
-}
-
 body{
- margin:0;
- min-height:100vh;
- background:linear-gradient(180deg,#071036,#082b4a);
- display:flex;
- justify-content:center;
- align-items:center;
- font-family:Arial;
+margin:0;
+font-family:Arial;
+background:linear-gradient(180deg,#0f172a,#1e3a8a);
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
 }
 
 .card{
- width:100%;
- max-width:420px;
- padding:22px;
- border-radius:18px;
- background:linear-gradient(135deg,rgba(255,255,255,.96),rgba(230,246,255,.96));
- box-shadow:0 15px 40px rgba(0,0,0,.6);
- position:relative;
- overflow:hidden;
+width:90%;
+max-width:420px;
+background:linear-gradient(135deg,#ffffff,#e0f2fe);
+border-radius:22px;
+padding:25px;
+box-shadow:0 15px 40px rgba(0,0,0,.4);
+text-align:center;
+position:relative;
+overflow:hidden;
 }
 
 .card::before{
- content:"🐶 🐱 🐾 💉 🩺 🐕 🐈";
- position:absolute;
- inset:0;
- display:flex;
- justify-content:center;
- align-items:center;
- font-size:50px;
- opacity:.18;
- pointer-events:none;
+content:"🐶 🐱 🐾 🐕 🐈 🩺 💉";
+position:absolute;
+inset:0;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:48px;
+opacity:0.14;
+pointer-events:none;
 }
 
-h1{
- text-align:center;
- margin-top:0;
-}
+h2{margin-top:0;}
 
-.grid{
- display:grid;
- grid-template-columns:1fr 1fr;
- gap:14px;
- margin-top:20px;
+.menu{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:15px;
+margin-top:20px;
 }
 
 .btn{
- border:none;
- padding:20px 10px;
- border-radius:16px;
- font-size:16px;
- font-weight:700;
- color:white;
- cursor:pointer;
- display:flex;
- flex-direction:column;
- align-items:center;
- justify-content:center;
- gap:8px;
+background:linear-gradient(90deg,#2563eb,#06b6d4);
+color:white;
+padding:18px;
+border-radius:16px;
+font-size:16px;
+font-weight:bold;
+cursor:pointer;
 }
 
-.btn span{
- font-size:30px;
+.logout{
+margin-top:20px;
+background:#ef4444;
 }
-
-.mascotas{background:linear-gradient(90deg,#3b82f6,#06b6d4);}
-.cartilla{background:linear-gradient(90deg,#22c55e,#4ade80);}
-.perfil{background:linear-gradient(90deg,#f59e0b,#fbbf24);}
-.salir{background:linear-gradient(90deg,#ef4444,#f87171);}
-
 </style>
 </head>
 
 <body>
 
 <div class="card">
-  <h1>🐾 Bienvenido a TIKO</h1>
-  <p style="text-align:center;color:#555;">Selecciona una opción</p>
+<h2>🏠 Inicio</h2>
 
-  <div class="grid">
+<div class="menu">
 
-    <button class="btn mascotas" onclick="irMascotas()">
-      <span>🐶</span>
-      Mascotas
-    </button>
+<div class="btn" onclick="go('mascotas.html')">🐕 Mi Mascota</div>
 
-    <button class="btn cartilla" onclick="irCartilla()">
-      <span>💉</span>
-      Cartilla
-    </button>
+<div class="btn" onclick="go('cartilla.html')">💉 Cartilla</div>
 
-    <button class="btn perfil" onclick="irPerfil()">
-      <span>👤</span>
-      Perfil
-    </button>
+<div class="btn" onclick="go('perfil.html')">👤 Perfil</div>
 
-    <button class="btn salir" onclick="cerrarSesion()">
-      <span>🚪</span>
-      Salir
-    </button>
+<div class="btn" onclick="go('login.html')">🔁 Cambiar cuenta</div>
 
-  </div>
+</div>
+
+<div class="btn logout" onclick="logout()">🚪 Cerrar sesión</div>
+
 </div>
 
 <script>
-function irMascotas(){
-  window.location.href="mascotas.html";
+function go(pagina){
+window.location.href = pagina;
 }
 
-function irCartilla(){
-  window.location.href="cartilla.html";
-}
-
-function irPerfil(){
-  window.location.href="perfil.html";
-}
-
-function cerrarSesion(){
-  window.location.href="login.html";
+function logout(){
+window.location.href="login.html";
 }
 </script>
 
