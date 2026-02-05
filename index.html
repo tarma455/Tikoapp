@@ -1,81 +1,77 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TIKO - Login</title>
 
-<!-- 🔐 RECOMENDACIÓN OBLIGATORIA -->
-<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
-
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>TIKO — Autenticación</title>
-
-<!-- Firebase compat -->
+<!-- Firebase COMPAT -->
 <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore-compat.js"></script>
 
 <style>
-:root{--accent1:#2563eb;--accent2:#06b6d4;--muted:#6b7280}
 body{
 margin:0;
-background:linear-gradient(180deg,#081b3a,#0f3b6d);
+font-family:Arial;
+background:linear-gradient(180deg,#0f172a,#1e3a8a);
 min-height:100vh;
 display:flex;
-align-items:center;
 justify-content:center;
-font-family:Arial;
+align-items:center;
 }
 
 .card{
-width:100%;
+width:90%;
 max-width:420px;
-padding:20px;
-border-radius:18px;
-background:linear-gradient(135deg,#ffffff,#dff1ff);
-box-shadow:0 10px 30px rgba(0,0,0,.6);
+background:linear-gradient(135deg,#ffffff,#e0f2fe);
+border-radius:20px;
+padding:25px;
+box-shadow:0 15px 40px rgba(0,0,0,.4);
+text-align:center;
 position:relative;
 overflow:hidden;
 }
 
 .card::before{
-content:"🐶 🐱 🐾 🩺 💉 🐕 🐈";
+content:"🐶 🐱 🐾 🐕 🐈 🩺 💉";
 position:absolute;
 inset:0;
 display:flex;
 justify-content:center;
 align-items:center;
-font-size:46px;
-opacity:.22;
+font-size:48px;
+opacity:0.15;
 pointer-events:none;
 }
 
-h1{text-align:center;margin:0;}
-p{text-align:center;color:#555;}
-
-label{font-size:13px;}
-input,select{
+h1{margin:0;}
+input,select,button{
 width:100%;
-padding:10px;
-margin-top:6px;
-border-radius:10px;
+padding:12px;
+margin-top:10px;
+border-radius:12px;
 border:1px solid #ccc;
+font-size:16px;
 }
 
 button{
-width:100%;
-padding:12px;
-border:none;
-border-radius:12px;
 background:linear-gradient(90deg,#2563eb,#06b6d4);
 color:white;
+border:none;
 font-weight:bold;
-margin-top:12px;
 }
 
-.small{text-align:center;margin-top:10px;}
-.hidden{display:none}
-.ok{color:green}
-.err{color:red}
+.link{
+margin-top:10px;
+color:#2563eb;
+cursor:pointer;
+}
+
+.hidden{display:none;}
+.msg{margin-top:10px;}
+.ok{color:green;}
+.err{color:red;}
 </style>
 </head>
 
@@ -84,156 +80,110 @@ margin-top:12px;
 <div class="card">
 
 <h1>T I K O</h1>
-<p>Conexión Peluda</p>
+<p>Conexión Peluda 🐾</p>
 
 <!-- LOGIN -->
 <div id="loginBox">
-<label>Correo</label>
-<input id="loginEmail">
-
-<label>Contraseña</label>
-<input id="loginPass" type="password">
-
-<button id="btnLogin">Iniciar sesión</button>
-
-<div class="small">
-<a href="#" id="showRegister">Crear cuenta</a>
-</div>
-
-<div id="loginMsg"></div>
+<input id="loginEmail" type="email" placeholder="Correo">
+<input id="loginPass" type="password" placeholder="Contraseña">
+<button onclick="login()">Iniciar sesión</button>
+<div class="link" onclick="mostrarRegistro()">Crear cuenta</div>
+<div id="loginMsg" class="msg"></div>
 </div>
 
 <!-- REGISTRO -->
 <div id="registerBox" class="hidden">
+<input id="regNombre" placeholder="Nombre completo">
+<input id="regEmail" type="email" placeholder="Correo">
+<input id="regTelefono" placeholder="Teléfono">
+<input id="regPass" type="password" placeholder="Contraseña">
+<input id="regConfirm" type="password" placeholder="Confirmar contraseña">
 
-<label>Nombre</label>
-<input id="regName">
-
-<label>Correo</label>
-<input id="regEmail">
-
-<label>Teléfono</label>
-<input id="regPhone">
-
-<label>Contraseña</label>
-<input id="regPass" type="password">
-
-<label>Confirmar</label>
-<input id="regConfirm" type="password">
-
-<label>Tipo de cuenta</label>
-<select id="regRole">
+<select id="regRol">
 <option value="usuario">Dueño</option>
 <option value="tecnico">Técnico</option>
 <option value="veterinaria">Veterinaria</option>
 </select>
 
-<label>Código especial (si tienes)</label>
-<input id="regCode">
+<input id="regCodigo" placeholder="Código especial (opcional)">
 
-<button id="btnRegister">Registrarme</button>
-
-<div class="small">
-<a href="#" id="showLogin">Volver</a>
-</div>
-
-<div id="regMsg"></div>
-
+<button onclick="registrar()">Registrarse</button>
+<div class="link" onclick="mostrarLogin()">Volver</div>
+<div id="regMsg" class="msg"></div>
 </div>
 
 </div>
 
 <script>
-// 🔁 PEGA AQUÍ TU CONFIG REAL DE FIREBASE
+// 🔥 TU FIREBASE REAL
 const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_PROYECTO.firebaseapp.com",
-  projectId: "TU_PROYECTO",
-  storageBucket: "TU_PROYECTO.appspot.com",
-  messagingSenderId: "XXXX",
-  appId: "XXXX"
+  apiKey: "AIzaSyANX656iqyz6NIo7WX_IvIMnY4w9SQP6sU",
+  authDomain: "tiko-ap.firebaseapp.com",
+  projectId: "tiko-ap",
+  storageBucket: "tiko-ap.appspot.com",
+  messagingSenderId: "97455117291",
+  appId: "1:97455117291:web:1dc88f792d0a74c394bfae"
 };
 
 firebase.initializeApp(firebaseConfig);
-
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-/* ENVIAR A MIT */
-function sendMIT(obj){
- if(window.AppInventor){
-   window.AppInventor.setWebViewString(JSON.stringify(obj));
- }
+// UI
+function mostrarRegistro(){
+loginBox.classList.add("hidden");
+registerBox.classList.remove("hidden");
 }
 
-/* CAMBIOS DE PANTALLA */
-showRegister.onclick = ()=>{
- loginBox.classList.add("hidden");
- registerBox.classList.remove("hidden");
+function mostrarLogin(){
+registerBox.classList.add("hidden");
+loginBox.classList.remove("hidden");
 }
 
-showLogin.onclick = ()=>{
- registerBox.classList.add("hidden");
- loginBox.classList.remove("hidden");
+// LOGIN
+function login(){
+const email=loginEmail.value;
+const pass=loginPass.value;
+
+auth.signInWithEmailAndPassword(email,pass)
+.then(()=>{
+window.location.href="home.html";
+})
+.catch(err=>{
+loginMsg.textContent=err.message;
+loginMsg.className="msg err";
+});
 }
 
-/* LOGIN */
-btnLogin.onclick = async ()=>{
- try{
-   const cred = await auth.signInWithEmailAndPassword(
-     loginEmail.value,
-     loginPass.value
-   );
-
-   const doc = await db.collection("usuarios")
-   .doc(cred.user.uid).get();
-
-   sendMIT({tipo:"login_ok",datos:doc.data()});
-
-   loginMsg.textContent="Bienvenido";
-   loginMsg.className="ok";
-
- }catch(e){
-   loginMsg.textContent=e.message;
-   loginMsg.className="err";
- }
+// REGISTRO
+function registrar(){
+if(regPass.value!==regConfirm.value){
+regMsg.textContent="Las contraseñas no coinciden";
+regMsg.className="msg err";
+return;
 }
 
-/* REGISTRO */
-btnRegister.onclick = async ()=>{
-
- if(regPass.value !== regConfirm.value){
-   regMsg.textContent="No coinciden";
-   regMsg.className="err";
-   return;
- }
-
- try{
-   const cred = await auth.createUserWithEmailAndPassword(
-     regEmail.value,
-     regPass.value
-   );
-
-   await db.collection("usuarios")
-   .doc(cred.user.uid)
-   .set({
-     nombre:regName.value,
-     email:regEmail.value,
-     telefono:regPhone.value,
-     rol:regRole.value,
-     codigo:regCode.value,
-     creado:firebase.firestore.FieldValue.serverTimestamp()
-   });
-
-   regMsg.textContent="Cuenta creada";
-   regMsg.className="ok";
-
- }catch(e){
-   regMsg.textContent=e.message;
-   regMsg.className="err";
- }
+auth.createUserWithEmailAndPassword(regEmail.value,regPass.value)
+.then(res=>{
+return db.collection("usuarios").doc(res.user.uid).set({
+nombre:regNombre.value,
+email:regEmail.value,
+telefono:regTelefono.value,
+rol:regRol.value,
+codigo:regCodigo.value,
+creado:firebase.firestore.FieldValue.serverTimestamp()
+});
+})
+.then(()=>{
+regMsg.textContent="Registro exitoso";
+regMsg.className="msg ok";
+setTimeout(()=>window.location.href="home.html",800);
+})
+.catch(err=>{
+regMsg.textContent=err.message;
+regMsg.className="msg err";
+});
 }
-
 </script>
 
 </body>
