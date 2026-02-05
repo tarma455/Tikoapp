@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Vacunas</title>
+
+<style>
+body{
+font-family:Arial;
+background:#1e3a8a;
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+}
+
+.card{
+background:white;
+width:90%;
+max-width:430px;
+padding:25px;
+border-radius:20px;
+}
+
+input{
+width:100%;
+padding:12px;
+margin-top:10px;
+border-radius:10px;
+}
+
+button{
+width:100%;
+padding:14px;
+margin-top:12px;
+background:#06b6d4;
+color:white;
+border:none;
+border-radius:12px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+<h2>💉 Vacunas</h2>
+
+<input placeholder="Nombre vacuna">
+<input placeholder="Fecha aplicada">
+<input placeholder="Próxima dosis">
+
+<button>📅 Seleccionar fecha</button>
+<button>Guardar vacuna</button>
+<button onclick="back()">Volver</button>
+</div>
+
+<script>
+function back(){
+location.href="home.html";
+}
+</script>
+
+</body>
+</html>
