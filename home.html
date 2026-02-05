@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>TIKO — Inicio</title>
+
+<style>
+:root{--accent1:#2563eb;--accent2:#06b6d4}
+
+body{
+margin:0;
+background:linear-gradient(180deg,#081b3a,#0f3b6d);
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+font-family:Arial;
+}
+
+.card{
+width:100%;
+max-width:420px;
+padding:20px;
+border-radius:18px;
+background:linear-gradient(135deg,#ffffff,#dff1ff);
+box-shadow:0 10px 30px rgba(0,0,0,.6);
+position:relative;
+overflow:hidden;
+}
+
+.card::before{
+content:"🐶 🐱 🐾 🐕 🐈 🩺 💉";
+position:absolute;
+inset:0;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:44px;
+opacity:.22;
+pointer-events:none;
+}
+
+h1{
+text-align:center;
+margin:0;
+}
+
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:14px;
+margin-top:20px;
+}
+
+.btn{
+padding:22px;
+border-radius:16px;
+background:linear-gradient(90deg,#2563eb,#06b6d4);
+color:white;
+font-size:16px;
+font-weight:bold;
+border:none;
+cursor:pointer;
+}
+
+.btn span{
+display:block;
+font-size:28px;
+margin-bottom:6px;
+}
+
+.footer{
+margin-top:20px;
+text-align:center;
+font-size:13px;
+color:#555;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<h1>T I K O</h1>
+<p style="text-align:center">Panel principal</p>
+
+<div class="grid">
+
+<button class="btn" onclick="go('mascotas.html')">
+<span>🐶</span>
+Mascotas
+</button>
+
+<button class="btn" onclick="go('cartilla.html')">
+<span>📋</span>
+Cartilla
+</button>
+
+<button class="btn" onclick="go('scan.html')">
+<span>🔍</span>
+Escanear QR
+</button>
+
+<button class="btn" onclick="go('perfil.html')">
+<span>👤</span>
+Perfil
+</button>
+
+</div>
+
+<div class="footer">TIKO • Conexión Peluda</div>
+
+</div>
+
+<script>
+function go(pagina){
+  if(window.AppInventor){
+    window.AppInventor.setWebViewString(
+      JSON.stringify({tipo:"abrir",pantalla:pagina})
+    );
+  }else{
+    location.href=pagina;
+  }
+}
+</script>
+
+</body>
+</html>
