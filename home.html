@@ -17,30 +17,32 @@ align-items:center;
 }
 
 .card{
-width:90%;
-max-width:420px;
+width:92%;
+max-width:430px;
 background:linear-gradient(135deg,#ffffff,#e0f2fe);
-border-radius:22px;
+border-radius:24px;
 padding:25px;
-box-shadow:0 15px 40px rgba(0,0,0,.4);
+box-shadow:0 15px 40px rgba(0,0,0,.45);
 text-align:center;
 position:relative;
 overflow:hidden;
 }
 
 .card::before{
-content:"🐶 🐱 🐾 🐕 🐈 🩺 💉";
+content:"🐶 🐱 🐾 🐕 🐈 💉 🩺";
 position:absolute;
 inset:0;
 display:flex;
 justify-content:center;
 align-items:center;
-font-size:48px;
+font-size:52px;
 opacity:0.14;
 pointer-events:none;
 }
 
-h2{margin-top:0;}
+h2{
+margin-top:0;
+}
 
 .menu{
 display:grid;
@@ -53,15 +55,20 @@ margin-top:20px;
 background:linear-gradient(90deg,#2563eb,#06b6d4);
 color:white;
 padding:18px;
-border-radius:16px;
+border-radius:18px;
 font-size:16px;
 font-weight:bold;
 cursor:pointer;
+transition:0.2s;
+}
+
+.btn:hover{
+transform:scale(1.03);
 }
 
 .logout{
-margin-top:20px;
-background:#ef4444;
+margin-top:22px;
+background:linear-gradient(90deg,#ef4444,#dc2626);
 }
 </style>
 </head>
@@ -69,17 +76,19 @@ background:#ef4444;
 <body>
 
 <div class="card">
+
 <h2>🏠 Inicio</h2>
+<p>Bienvenido a TIKO 🐾</p>
 
 <div class="menu">
 
-<div class="btn" onclick="go('mascotas.html')">🐕 Mi Mascota</div>
+<div class="btn" onclick="go('mascotas.html')">🐕 Mascota</div>
 
 <div class="btn" onclick="go('cartilla.html')">💉 Cartilla</div>
 
-<div class="btn" onclick="go('perfil.html')">👤 Perfil</div>
+<div class="btn" onclick="go('historial.html')">🩺 Historial Médico</div>
 
-<div class="btn" onclick="go('login.html')">🔁 Cambiar cuenta</div>
+<div class="btn" onclick="go('perfil.html')">👤 Perfil</div>
 
 </div>
 
@@ -88,8 +97,8 @@ background:#ef4444;
 </div>
 
 <script>
-function go(pagina){
-window.location.href = pagina;
+function go(p){
+window.location.href=p;
 }
 
 function logout(){
