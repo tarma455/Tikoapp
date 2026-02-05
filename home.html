@@ -29,7 +29,7 @@ overflow:hidden;
 }
 
 .card::before{
-content:"🐶 🐱 🐾 🐕 🐈 💉 🩺";
+content:"🐶 🐱 🐾 🩺 💉";
 position:absolute;
 inset:0;
 display:flex;
@@ -38,10 +38,6 @@ align-items:center;
 font-size:52px;
 opacity:0.14;
 pointer-events:none;
-}
-
-h2{
-margin-top:0;
 }
 
 .menu{
@@ -56,18 +52,14 @@ background:linear-gradient(90deg,#2563eb,#06b6d4);
 color:white;
 padding:18px;
 border-radius:18px;
-font-size:16px;
+font-size:15px;
 font-weight:bold;
 cursor:pointer;
-transition:0.2s;
-}
-
-.btn:hover{
-transform:scale(1.03);
+text-align:center;
 }
 
 .logout{
-margin-top:22px;
+margin-top:20px;
 background:linear-gradient(90deg,#ef4444,#dc2626);
 }
 </style>
@@ -78,17 +70,17 @@ background:linear-gradient(90deg,#ef4444,#dc2626);
 <div class="card">
 
 <h2>🏠 Inicio</h2>
-<p>Bienvenido a TIKO 🐾</p>
 
 <div class="menu">
 
-<div class="btn" onclick="go('mascotas.html')">🐕 Mascota</div>
+<div class="btn" onclick="go('perfil.html')">👤 Dueño</div>
+<div class="btn" onclick="go('mascota.html')">🐕 Mascota</div>
 
-<div class="btn" onclick="go('cartilla.html')">💉 Cartilla</div>
+<div class="btn" onclick="go('vacunas.html')">💉 Vacunas</div>
+<div class="btn" onclick="go('historial.html')">🩺 Historial</div>
 
-<div class="btn" onclick="go('historial.html')">🩺 Historial Médico</div>
-
-<div class="btn" onclick="go('perfil.html')">👤 Perfil</div>
+<div class="btn" onclick="go('cartilla.html')">📘 Mostrar Cartilla</div>
+<div class="btn" onclick="go('perfil.html')">⚙ Perfil</div>
 
 </div>
 
@@ -100,7 +92,6 @@ background:linear-gradient(90deg,#ef4444,#dc2626);
 function go(p){
 window.location.href=p;
 }
-
 function logout(){
 window.location.href="login.html";
 }
