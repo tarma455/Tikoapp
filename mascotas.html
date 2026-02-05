@@ -2,21 +2,67 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mascota</title>
+
+<style>
+body{
+font-family:Arial;
+background:#1e3a8a;
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+}
+
+.card{
+background:white;
+width:90%;
+max-width:430px;
+padding:25px;
+border-radius:20px;
+}
+
+input,select{
+width:100%;
+padding:12px;
+margin-top:10px;
+border-radius:10px;
+border:1px solid #ccc;
+}
+
+button{
+width:100%;
+padding:14px;
+margin-top:15px;
+border:none;
+border-radius:14px;
+background:#2563eb;
+color:white;
+}
+</style>
 </head>
 
-<body style="background:#0f172a;color:white;text-align:center">
+<body>
 
-<h2>🐾 Registro de Mascota</h2>
+<div class="card">
+<h2>🐕 Datos Mascota</h2>
 
-<p>Aquí irá el formulario de mascota</p>
+<input placeholder="Nombre">
+<input placeholder="Especie">
+<input placeholder="Raza">
+<input placeholder="Edad">
+<select>
+<option>Macho</option>
+<option>Hembra</option>
+</select>
 
-<button onclick="volver()">⬅ Volver</button>
+<button>Guardar</button>
+<button onclick="back()">Volver</button>
+</div>
 
 <script>
-function volver(){
-window.location.href="home.html";
+function back(){
+location.href="home.html";
 }
 </script>
 
