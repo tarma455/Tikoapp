@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mascota</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<h2>Registro de Mascota</h2>
+
+<input id="nombre" placeholder="Nombre de la mascota"><br><br>
+<input id="edad" placeholder="Edad"><br><br>
+<input id="tipo" placeholder="Tipo (perro/gato)"><br><br>
+
+<button onclick="guardar()">Guardar</button>
+
+<hr>
+
+<h3>Datos guardados</h3>
+<p id="resultado"></p>
+
+<script>
+  function guardar() {
+    const nombre = document.getElementById("nombre").value;
+    const edad = document.getElementById("edad").value;
+    const tipo = document.getElementById("tipo").value;
+
+    // Enviamos a MIT App Inventor
+    window.AppInventor.setWebViewString(
+      "mascota|" + nombre + "|" + edad + "|" + tipo
+    );
+  }
+
+  // Recibir datos desde MIT
+  function mostrar(datos) {
+    document.getElementById("resultado").innerText = datos;
+  }
+</script>
+
+</body>
+</html>
