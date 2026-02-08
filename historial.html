@@ -2,87 +2,124 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>TIKO – Historial Médico</title>
+<title>Cartilla Médica - TIKO</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- QR -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
 <style>
 body{
   margin:0;
   font-family:Arial, sans-serif;
-  background:linear-gradient(135deg,#6366f1,#22c55e);
-  min-height:100vh;
-  padding:12px;
+  background:linear-gradient(180deg,#0f172a,#1e3a8a);
+  color:#0f172a;
 }
 .card{
-  background:white;
+  max-width:420px;
+  margin:20px auto;
+  background:#fff;
   border-radius:16px;
   padding:16px;
-  max-width:420px;
-  margin:auto;
-  box-shadow:0 10px 25px rgba(0,0,0,.3);
+  box-shadow:0 10px 30px rgba(0,0,0,.4);
 }
-h2{
-  text-align:center;
-  margin-top:0;
+h1{text-align:center;margin:0}
+.section{
+  margin-top:14px;
+  padding:12px;
+  border-radius:12px;
+  background:#f1f5f9;
 }
-.item{
-  border-left:5px solid #22c55e;
-  padding:10px;
-  margin-bottom:10px;
-  background:#f9fafb;
-  border-radius:10px;
-}
-.label{
-  font-size:12px;
-  color:#555;
-}
-.value{
+.section h3{margin:0 0 6px}
+.btn{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(90deg,#2563eb,#06b6d4);
+  color:#fff;
   font-weight:bold;
-  margin-bottom:4px;
+  margin-top:10px;
+  cursor:pointer;
+}
+#qr{
+  display:flex;
+  justify-content:center;
+  margin-top:16px;
+}
+small{
+  display:block;
+  text-align:center;
+  color:#64748b;
 }
 </style>
 </head>
 
 <body>
+
 <div class="card">
-  <h2>🩺 Historial Médico</h2>
-  <div id="lista"></div>
+  <h1>🐾 CARTILLA MÉDICA</h1>
+  <small>TIKO · Conexión Peluda</small>
+
+  <div class="section">
+    <h3>👤 Dueño</h3>
+    <p id="dueno">Cargando...</p>
+  </div>
+
+  <div class="section">
+    <h3>🐶 Mascota</h3>
+    <p id="mascota">Cargando...</p>
+  </div>
+
+  <div class="section">
+    <h3>💉 Vacunas</h3>
+    <ul id="vacunas"></ul>
+  </div>
+
+  <div class="section">
+    <h3>🩺 Historial Médico</h3>
+    <ul id="historial"></ul>
+  </div>
+
+  <button class="btn" onclick="window.print()">📄 Exportar cartilla</button>
+
+  <div id="qr"></div>
+  <small>Escanea para ver esta cartilla</small>
 </div>
 
 <script>
-function cargarHistorial(){
-  try{
-    const datos = JSON.parse(window.AppInventor.getWebViewString());
-    const contenedor = document.getElementById("lista");
-    contenedor.innerHTML = "";
+/* ===== DATOS DE PRUEBA =====
+   (luego los conectas con TinyDB o Firebase)
+*/
+const datos = {
+  dueno: "Juan Pérez · 55 1234 5678",
+  mascota: "Firulais · Perro · 3 años",
+  vacunas: ["Rabia", "Parvovirus", "Moquillo"],
+  historial: ["Consulta general", "Desparasitación"]
+};
 
-    if(datos.length === 0){
-      contenedor.innerHTML = "<p>No hay registros aún.</p>";
-      return;
-    }
+// Mostrar datos
+document.getElementById("dueno").innerText = datos.dueno;
+document.getElementById("mascota").innerText = datos.mascota;
 
-    datos.forEach(item=>{
-      const div = document.createElement("div");
-      div.className = "item";
-      div.innerHTML = `
-        <div class="label">Fecha</div>
-        <div class="value">${item.fecha || "-"}</div>
+datos.vacunas.forEach(v=>{
+  const li=document.createElement("li");
+  li.innerText=v;
+  document.getElementById("vacunas").appendChild(li);
+});
 
-        <div class="label">Motivo</div>
-        <div class="value">${item.motivo || "-"}</div>
+datos.historial.forEach(h=>{
+  const li=document.createElement("li");
+  li.innerText=h;
+  document.getElementById("historial").appendChild(li);
+});
 
-        <div class="label">Tratamiento</div>
-        <div class="value">${item.tratamiento || "-"}</div>
-
-        <div class="label">Notas</div>
-        <div class="value">${item.notas || "-"}</div>
-      `;
-      contenedor.appendChild(div);
-    });
-
-  }catch(e){}
-}
-
-setInterval(cargarHistorial, 700);
+// Generar QR
+new QRCode(document.getElementById("qr"), {
+  text: window.location.href,
+  width: 140,
+  height: 140
+});
 </script>
 
 </body>
