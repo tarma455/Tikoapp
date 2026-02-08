@@ -1,83 +1,124 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Cartilla Médica</title>
+<title>Cartilla Médica - TIKO</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body{
-font-family:Arial;
-background:#1e3a8a;
-display:flex;
-justify-content:center;
-align-items:center;
-min-height:100vh;
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:linear-gradient(180deg,#0f172a,#1e3a8a);
 }
-
 .card{
-background:white;
-width:92%;
-max-width:430px;
-padding:25px;
-border-radius:20px;
+  max-width:420px;
+  margin:20px auto;
+  background:#fff;
+  border-radius:16px;
+  padding:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);
 }
-
+h1{text-align:center;margin:0}
 .section{
-border:1px solid #ccc;
-padding:10px;
-margin-top:12px;
-border-radius:10px;
+  margin-top:14px;
+  padding:12px;
+  border-radius:12px;
+  background:#f1f5f9;
 }
-
-button{
-width:100%;
-padding:14px;
-margin-top:12px;
-background:#2563eb;
-color:white;
-border:none;
-border-radius:12px;
+.section h3{margin:0 0 6px}
+.btn{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(90deg,#2563eb,#06b6d4);
+  color:#fff;
+  font-weight:bold;
+  margin-top:12px;
+  cursor:pointer;
 }
+.back{
+  background:#64748b;
+}
+ul{padding-left:18px;margin:0}
 </style>
 </head>
 
 <body>
 
-<div class="card">
+<div class="card" id="cartilla">
+  <h1>🐾 CARTILLA MÉDICA</h1>
 
-<h2>📘 Cartilla Médica</h2>
+  <div class="section">
+    <h3>👤 Dueño</h3>
+    <p id="dueno">—</p>
+  </div>
 
-<div class="section">
-<h4>👤 Dueño</h4>
-<p>Nombre...</p>
-</div>
+  <div class="section">
+    <h3>🐶 Mascota</h3>
+    <p id="mascota">—</p>
+  </div>
 
-<div class="section">
-<h4>🐕 Mascota</h4>
-<p>Datos...</p>
-</div>
+  <div class="section">
+    <h3>💉 Vacunas</h3>
+    <ul id="vacunas"></ul>
+  </div>
 
-<div class="section">
-<h4>💉 Vacunas</h4>
-<p>Listado...</p>
-</div>
+  <div class="section">
+    <h3>🩺 Historial Médico</h3>
+    <ul id="historial"></ul>
+  </div>
 
-<div class="section">
-<h4>🩺 Historial</h4>
-<p>Listado...</p>
-</div>
-
-<button>📤 Exportar Cartilla</button>
-<button onclick="back()">Volver</button>
-
+  <button class="btn" onclick="exportar()">📄 Exportar cartilla</button>
+  <button class="btn back" onclick="volver()">⬅ Volver</button>
 </div>
 
 <script>
-function back(){
-location.href="home.html";
+function exportar(){
+  window.print(); // ✔ EXPORTA BIEN
 }
+
+function volver(){
+  window.location.href="home.html";
+}
+
+// 🔁 Recibir TODO desde MIT
+function recibir(){
+  try{
+    const data = JSON.parse(window.AppInventor.getWebViewString());
+
+    if(data.dueno){
+      document.getElementById("dueno").innerText = data.dueno;
+    }
+
+    if(data.mascota){
+      document.getElementById("mascota").innerText = data.mascota;
+    }
+
+    if(data.vacunas){
+      const ul=document.getElementById("vacunas");
+      ul.innerHTML="";
+      data.vacunas.forEach(v=>{
+        const li=document.createElement("li");
+        li.innerText=v;
+        ul.appendChild(li);
+      });
+    }
+
+    if(data.historial){
+      const ul=document.getElementById("historial");
+      ul.innerHTML="";
+      data.historial.forEach(h=>{
+        const li=document.createElement("li");
+        li.innerText=h;
+        ul.appendChild(li);
+      });
+    }
+  }catch(e){}
+}
+setInterval(recibir,600);
 </script>
 
 </body>
 </html>
-
