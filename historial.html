@@ -2,59 +2,68 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>TIKO - Mascotas</title>
+<title>TIKO - Historial Médico</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body{
   margin:0;
   font-family:Arial;
-  background:linear-gradient(135deg,#22c55e,#38bdf8);
+  background:linear-gradient(135deg,#f97316,#ef4444);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
 }
 .card{
-  margin:20px;
-  padding:20px;
   background:white;
+  width:92%;
+  max-width:420px;
   border-radius:18px;
+  padding:18px;
 }
-input,button{
+input,textarea,button{
   width:100%;
   padding:12px;
   margin-top:10px;
   border-radius:12px;
   border:1px solid #ccc;
 }
+textarea{resize:none;}
 button{
   background:linear-gradient(90deg,#2563eb,#06b6d4);
   color:white;
   border:none;
   font-weight:bold;
 }
+.back{
+  background:#64748b;
+}
 </style>
 </head>
 
 <body>
 <div class="card">
-  <h2>🐾 Registrar Mascota</h2>
+  <h2>🩺 Historial Médico</h2>
 
-  <input id="nombre" placeholder="Nombre">
-  <input id="especie" placeholder="Especie">
-  <input id="edad" placeholder="Edad">
+  <input id="padecimiento" placeholder="Padecimiento / Enfermedad">
+  <input id="fecha" type="date">
+  <textarea id="notas" placeholder="Notas médicas"></textarea>
 
   <button onclick="guardar()">💾 Guardar</button>
-  <button onclick="volver()">⬅ Regresar</button>
+  <button class="back" onclick="volver()">⬅ Regresar</button>
 </div>
 
 <script>
 function guardar(){
-  const mascota = {
-    nombre: nombre.value,
-    especie: especie.value,
-    edad: edad.value
+  const historial = {
+    padecimiento: padecimiento.value,
+    fecha: fecha.value,
+    notas: notas.value
   };
 
   if(window.AppInventor){
-    window.AppInventor.setWebViewString(JSON.stringify(mascota));
+    window.AppInventor.setWebViewString(JSON.stringify(historial));
   }
 }
 
