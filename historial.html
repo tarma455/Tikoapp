@@ -2,93 +2,65 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<title>TIKO - Mascotas</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Historial</title>
-
-<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore-compat.js"></script>
 
 <style>
 body{
-  background:#0f172a;
-  color:white;
+  margin:0;
   font-family:Arial;
-  text-align:center;
+  background:linear-gradient(135deg,#22c55e,#38bdf8);
 }
 .card{
-  background:#1e293b;
+  margin:20px;
   padding:20px;
-  margin:20px auto;
-  max-width:420px;
-  border-radius:15px;
+  background:white;
+  border-radius:18px;
 }
-ul{padding-left:20px;text-align:left}
+input,button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:12px;
+  border:1px solid #ccc;
+}
+button{
+  background:linear-gradient(90deg,#2563eb,#06b6d4);
+  color:white;
+  border:none;
+  font-weight:bold;
+}
 </style>
 </head>
 
 <body>
-
-<h2>📋 Historial Médico</h2>
-
 <div class="card">
-  <p><b>Dueño:</b> <span id="dueno">—</span></p>
-  <p><b>Mascota:</b> <span id="mascota">—</span></p>
+  <h2>🐾 Registrar Mascota</h2>
 
-  <h3>🩺 Registros</h3>
-  <ul id="lista"></ul>
+  <input id="nombre" placeholder="Nombre">
+  <input id="especie" placeholder="Especie">
+  <input id="edad" placeholder="Edad">
 
-  <button onclick="window.location.href='home.html'">⬅ Volver</button>
+  <button onclick="guardar()">💾 Guardar</button>
+  <button onclick="volver()">⬅ Regresar</button>
 </div>
 
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyANX656iqyz6NIo7WX_IvIMnY4w9SQP6sU",
-  authDomain: "tiko-ap.firebaseapp.com",
-  projectId: "tiko-ap"
-};
-firebase.initializeApp(firebaseConfig);
+function guardar(){
+  const mascota = {
+    nombre: nombre.value,
+    especie: especie.value,
+    edad: edad.value
+  };
 
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-auth.onAuthStateChanged(async user=>{
-  if(!user) return;
-
-  // Dueño
-  const u = await db.collection("usuarios").doc(user.uid).get();
-  if(u.exists){
-    const d = u.data();
-    dueno.innerText = d.nombre || "—";
+  if(window.AppInventor){
+    window.AppInventor.setWebViewString(JSON.stringify(mascota));
   }
+}
 
-  // Mascota (una por ahora)
-  const m = await db.collection("mascotas")
-    .where("uid","==",user.uid)
-    .limit(1)
-    .get();
-
-  if(!m.empty){
-    mascota.innerText = m.docs[0].data().nombre;
-  }
-
-  // Historial
-  const h = await db.collection("historial")
-    .where("uid","==",user.uid)
-    .get();
-
-  if(h.empty){
-    lista.innerHTML="<li>Sin registros</li>";
-  }else{
-    h.forEach(doc=>{
-      const d = doc.data();
-      const li = document.createElement("li");
-      li.innerText = d.detalle;
-      lista.appendChild(li);
-    });
-  }
-});
+function volver(){
+  window.location.href="home.html";
+}
 </script>
-
 </body>
 </html>
