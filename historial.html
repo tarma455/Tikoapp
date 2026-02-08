@@ -2,123 +2,91 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Cartilla Médica - TIKO</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Historial</title>
 
-<!-- QR -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore-compat.js"></script>
 
 <style>
 body{
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:linear-gradient(180deg,#0f172a,#1e3a8a);
-  color:#0f172a;
+  background:#0f172a;
+  color:white;
+  font-family:Arial;
+  text-align:center;
 }
 .card{
-  max-width:420px;
+  background:#1e293b;
+  padding:20px;
   margin:20px auto;
-  background:#fff;
-  border-radius:16px;
-  padding:16px;
-  box-shadow:0 10px 30px rgba(0,0,0,.4);
+  max-width:420px;
+  border-radius:15px;
 }
-h1{text-align:center;margin:0}
-.section{
-  margin-top:14px;
-  padding:12px;
-  border-radius:12px;
-  background:#f1f5f9;
-}
-.section h3{margin:0 0 6px}
-.btn{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:12px;
-  background:linear-gradient(90deg,#2563eb,#06b6d4);
-  color:#fff;
-  font-weight:bold;
-  margin-top:10px;
-  cursor:pointer;
-}
-#qr{
-  display:flex;
-  justify-content:center;
-  margin-top:16px;
-}
-small{
-  display:block;
-  text-align:center;
-  color:#64748b;
-}
+ul{padding-left:20px;text-align:left}
 </style>
 </head>
 
 <body>
 
+<h2>📋 Historial Médico</h2>
+
 <div class="card">
-  <h1>🐾 CARTILLA MÉDICA</h1>
-  <small>TIKO · Conexión Peluda</small>
+  <p><b>Dueño:</b> <span id="dueno">—</span></p>
+  <p><b>Mascota:</b> <span id="mascota">—</span></p>
 
-  <div class="section">
-    <h3>👤 Dueño</h3>
-    <p id="dueno">Cargando...</p>
-  </div>
+  <h3>🩺 Registros</h3>
+  <ul id="lista"></ul>
 
-  <div class="section">
-    <h3>🐶 Mascota</h3>
-    <p id="mascota">Cargando...</p>
-  </div>
-
-  <div class="section">
-    <h3>💉 Vacunas</h3>
-    <ul id="vacunas"></ul>
-  </div>
-
-  <div class="section">
-    <h3>🩺 Historial Médico</h3>
-    <ul id="historial"></ul>
-  </div>
-
-  <button class="btn" onclick="window.print()">📄 Exportar cartilla</button>
-
-  <div id="qr"></div>
-  <small>Escanea para ver esta cartilla</small>
+  <button onclick="window.location.href='home.html'">⬅ Volver</button>
 </div>
 
 <script>
-/* ===== DATOS DE PRUEBA =====
-   (luego los conectas con TinyDB o Firebase)
-*/
-const datos = {
-  dueno: "Juan Pérez · 55 1234 5678",
-  mascota: "Firulais · Perro · 3 años",
-  vacunas: ["Rabia", "Parvovirus", "Moquillo"],
-  historial: ["Consulta general", "Desparasitación"]
+const firebaseConfig = {
+  apiKey: "AIzaSyANX656iqyz6NIo7WX_IvIMnY4w9SQP6sU",
+  authDomain: "tiko-ap.firebaseapp.com",
+  projectId: "tiko-ap"
 };
+firebase.initializeApp(firebaseConfig);
 
-// Mostrar datos
-document.getElementById("dueno").innerText = datos.dueno;
-document.getElementById("mascota").innerText = datos.mascota;
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-datos.vacunas.forEach(v=>{
-  const li=document.createElement("li");
-  li.innerText=v;
-  document.getElementById("vacunas").appendChild(li);
-});
+auth.onAuthStateChanged(async user=>{
+  if(!user) return;
 
-datos.historial.forEach(h=>{
-  const li=document.createElement("li");
-  li.innerText=h;
-  document.getElementById("historial").appendChild(li);
-});
+  // Dueño
+  const u = await db.collection("usuarios").doc(user.uid).get();
+  if(u.exists){
+    const d = u.data();
+    dueno.innerText = d.nombre || "—";
+  }
 
-// Generar QR
-new QRCode(document.getElementById("qr"), {
-  text: window.location.href,
-  width: 140,
-  height: 140
+  // Mascota (una por ahora)
+  const m = await db.collection("mascotas")
+    .where("uid","==",user.uid)
+    .limit(1)
+    .get();
+
+  if(!m.empty){
+    mascota.innerText = m.docs[0].data().nombre;
+  }
+
+  // Historial
+  const h = await db.collection("historial")
+    .where("uid","==",user.uid)
+    .get();
+
+  if(h.empty){
+    lista.innerHTML="<li>Sin registros</li>";
+  }else{
+    h.forEach(doc=>{
+      const d = doc.data();
+      const li = document.createElement("li");
+      li.innerText = d.detalle;
+      lista.appendChild(li);
+    });
+  }
 });
 </script>
 
