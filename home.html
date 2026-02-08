@@ -7,60 +7,60 @@
 
 <style>
 body{
-margin:0;
-font-family:Arial;
-background:linear-gradient(180deg,#0f172a,#1e3a8a);
-min-height:100vh;
-display:flex;
-justify-content:center;
-align-items:center;
+  margin:0;
+  font-family:Arial;
+  background:linear-gradient(180deg,#0f172a,#1e3a8a);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
 }
 
 .card{
-width:92%;
-max-width:430px;
-background:linear-gradient(135deg,#ffffff,#e0f2fe);
-border-radius:24px;
-padding:25px;
-box-shadow:0 15px 40px rgba(0,0,0,.45);
-text-align:center;
-position:relative;
-overflow:hidden;
+  width:92%;
+  max-width:430px;
+  background:linear-gradient(135deg,#ffffff,#e0f2fe);
+  border-radius:24px;
+  padding:25px;
+  box-shadow:0 15px 40px rgba(0,0,0,.45);
+  text-align:center;
+  position:relative;
+  overflow:hidden;
 }
 
 .card::before{
-content:"🐶 🐱 🐾 🩺 💉";
-position:absolute;
-inset:0;
-display:flex;
-justify-content:center;
-align-items:center;
-font-size:52px;
-opacity:0.14;
-pointer-events:none;
+  content:"🐶 🐱 🐾 🩺 💉";
+  position:absolute;
+  inset:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:52px;
+  opacity:0.14;
+  pointer-events:none;
 }
 
 .menu{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:15px;
-margin-top:20px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:15px;
+  margin-top:20px;
 }
 
 .btn{
-background:linear-gradient(90deg,#2563eb,#06b6d4);
-color:white;
-padding:18px;
-border-radius:18px;
-font-size:15px;
-font-weight:bold;
-cursor:pointer;
-text-align:center;
+  background:linear-gradient(90deg,#2563eb,#06b6d4);
+  color:white;
+  padding:18px;
+  border-radius:18px;
+  font-size:15px;
+  font-weight:bold;
+  cursor:pointer;
+  text-align:center;
 }
 
 .logout{
-margin-top:20px;
-background:linear-gradient(90deg,#ef4444,#dc2626);
+  margin-top:20px;
+  background:linear-gradient(90deg,#ef4444,#dc2626);
 }
 </style>
 </head>
@@ -69,34 +69,43 @@ background:linear-gradient(90deg,#ef4444,#dc2626);
 
 <div class="card">
 
-<h2>🏠 Inicio</h2>
+  <h2>🏠 Inicio</h2>
 
-<div class="menu">
+  <div class="menu">
 
-<div class="btn" onclick="go('perfil.html')">👤 Dueño</div>
-<div class="btn" onclick="go('mascotas.html')">🐕 Mascota</div>
+    <!-- Dueño -->
+    <div class="btn" onclick="go('perfil.html')">👤 Dueño</div>
 
-<div class="btn" onclick="go('vacunas.html')">💉 Vacunas</div>
-<div class="btn" onclick="go('historial.html')">🩺 Historial</div>
+    <!-- Mascotas (CORREGIDO: plural) -->
+    <div class="btn" onclick="go('mascotas.html')">🐕 Mascotas</div>
 
-<div class="btn" onclick="go('cartilla.html')">📘 Mostrar Cartilla</div>
-<div class="btn" onclick="go('perfil.html')">⚙ Perfil</div>
+    <!-- Vacunas -->
+    <div class="btn" onclick="go('vacunas.html')">💉 Vacunas</div>
 
-</div>
+    <!-- Historial -->
+    <div class="btn" onclick="go('historial.html')">🩺 Historial</div>
 
-<div class="btn logout" onclick="logout()">🚪 Cerrar sesión</div>
+    <!-- Cartilla -->
+    <div class="btn" onclick="go('cartilla.html')">📘 Mostrar Cartilla</div>
+
+    <!-- Perfil -->
+    <div class="btn" onclick="go('perfil.html')">⚙ Perfil</div>
+
+  </div>
+
+  <div class="btn logout" onclick="logout()">🚪 Cerrar sesión</div>
 
 </div>
 
 <script>
 function go(p){
-window.location.href=p;
+  window.location.href = p;
 }
+
 function logout(){
-window.location.href="login.html";
+  window.location.href = "login.html";
 }
 </script>
 
 </body>
 </html>
-
