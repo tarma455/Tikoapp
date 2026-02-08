@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>TIKO – Vacunas</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TIKO – Vacunas</title>
 
 <style>
 body{
@@ -19,99 +19,61 @@ body{
   background:white;
   width:92%;
   max-width:420px;
-  border-radius:16px;
+  border-radius:18px;
   padding:18px;
   box-shadow:0 10px 25px rgba(0,0,0,.3);
 }
-h2{text-align:center;margin:0 0 10px}
-input,textarea,button{
+input,button{
   width:100%;
-  padding:10px;
-  margin-top:8px;
-  border-radius:10px;
+  padding:12px;
+  margin-top:10px;
+  border-radius:12px;
   border:1px solid #ccc;
-  font-size:14px;
 }
 button{
-  background:#22c55e;
+  background:linear-gradient(90deg,#2563eb,#06b6d4);
   color:white;
-  font-weight:bold;
   border:none;
+  font-weight:bold;
 }
-.item{margin-top:6px}
-.label{font-size:13px;color:#555}
-.value{font-size:15px;font-weight:bold}
-hr{margin:12px 0}
+.back{
+  background:#64748b;
+}
 </style>
 </head>
 
 <body>
 <div class="card">
+  <h2>💉 Registrar Vacuna</h2>
 
-<h2>💉 Registrar Vacuna</h2>
+  <input id="nombre" placeholder="Nombre de la vacuna">
+  <input id="dosis" placeholder="Dosis">
+  <input id="fecha" type="date">
+  <input id="proxima" type="date">
+  <input id="notas" placeholder="Notas">
 
-<input id="vNombre" placeholder="Nombre de la vacuna">
-<input id="vDosis" placeholder="Dosis">
-<input id="vFecha" type="date">
-<input id="vProxima" type="date">
-<textarea id="vNotas" placeholder="Notas"></textarea>
-
-<button onclick="guardarVacuna()">Guardar vacuna</button>
-
-<hr>
-
-<h2>📋 Última vacuna</h2>
-
-<div class="item"><div class="label">Vacuna</div><div id="nombre" class="value">—</div></div>
-<div class="item"><div class="label">Dosis</div><div id="dosis" class="value">—</div></div>
-<div class="item"><div class="label">Fecha aplicada</div><div id="fecha" class="value">—</div></div>
-<div class="item"><div class="label">Próxima dosis</div><div id="proxima" class="value">—</div></div>
-<div class="item"><div class="label">Notas</div><div id="notas" class="value">—</div></div>
-
+  <button onclick="guardar()">💾 Guardar</button>
+  <button class="back" onclick="volver()">⬅ Regresar</button>
 </div>
 
 <script>
-function guardarVacuna(){
+function guardar(){
   const datos = {
-    nombre: vNombre.value,
-    dosis: vDosis.value,
-    fecha: vFecha.value,
-    proxima: vProxima.value,
-    notas: vNotas.value
+    nombre: nombre.value,
+    dosis: dosis.value,
+    fecha: fecha.value,
+    proxima: proxima.value,
+    notas: notas.value
   };
 
-  localStorage.setItem("vacunaActual", JSON.stringify(datos));
-  mostrarVacuna();
-
-  // Enviar a MIT App Inventor (si existe)
   if(window.AppInventor){
     window.AppInventor.setWebViewString(JSON.stringify(datos));
   }
-
-  alert("Vacuna registrada ✔️");
 }
 
-function mostrarVacuna(){
-  const datos = JSON.parse(localStorage.getItem("vacunaActual") || "{}");
-  nombre.innerText = datos.nombre || "—";
-  dosis.innerText = datos.dosis || "—";
-  fecha.innerText = datos.fecha || "—";
-  proxima.innerText = datos.proxima || "—";
-  notas.innerText = datos.notas || "—";
+function volver(){
+  window.location.href="home.html";
 }
-
-// Leer datos desde MIT si existen
-function recibirDatosMIT(){
-  try{
-    const datos = JSON.parse(window.AppInventor.getWebViewString());
-    localStorage.setItem("vacunaActual", JSON.stringify(datos));
-    mostrarVacuna();
-  }catch(e){}
-}
-
-mostrarVacuna();
-setInterval(recibirDatosMIT, 800);
 </script>
-
 </body>
 </html>
