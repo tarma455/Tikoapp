@@ -1,41 +1,53 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Mascota</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>TIKO - Mascotas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:linear-gradient(135deg,#22c55e,#38bdf8);
+}
+.card{
+  margin:20px;
+  padding:20px;
+  background:white;
+  border-radius:18px;
+  box-shadow:0 10px 25px rgba(0,0,0,.2);
+}
+h2{
+  margin-top:0;
+}
+.item{
+  margin:10px 0;
+}
+</style>
 </head>
+
 <body>
 
-<h2>Registro de Mascota</h2>
+<div class="card">
+  <h2>🐾 Mis Mascotas</h2>
 
-<input id="nombre" placeholder="Nombre de la mascota"><br><br>
-<input id="edad" placeholder="Edad"><br><br>
-<input id="tipo" placeholder="Tipo (perro/gato)"><br><br>
+  <div class="item">
+    <b>Dueño:</b>
+    <span id="nombre"></span>
+  </div>
 
-<button onclick="guardar()">Guardar</button>
+  <hr>
 
-<hr>
-
-<h3>Datos guardados</h3>
-<p id="resultado"></p>
+  <div class="item"><b>Nombre mascota:</b> (pendiente)</div>
+  <div class="item"><b>Especie:</b> (pendiente)</div>
+  <div class="item"><b>Vacunas:</b> (pendiente)</div>
+</div>
 
 <script>
-  function guardar() {
-    const nombre = document.getElementById("nombre").value;
-    const edad = document.getElementById("edad").value;
-    const tipo = document.getElementById("tipo").value;
-
-    // Enviamos a MIT App Inventor
-    window.AppInventor.setWebViewString(
-      "mascota|" + nombre + "|" + edad + "|" + tipo
-    );
-  }
-
-  // Recibir datos desde MIT
-  function mostrar(datos) {
-    document.getElementById("resultado").innerText = datos;
-  }
+const params = new URLSearchParams(window.location.search);
+document.getElementById("nombre").innerText =
+  params.get("nombre") || "Sin nombre";
 </script>
 
 </body>
