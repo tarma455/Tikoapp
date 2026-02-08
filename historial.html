@@ -2,92 +2,87 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<title>TIKO – Historial Médico</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TIKO - Historial Médico</title>
-
 <style>
 body{
-margin:0;
-font-family:Arial;
-background:linear-gradient(180deg,#0f172a,#1e3a8a);
-min-height:100vh;
-display:flex;
-justify-content:center;
-align-items:center;
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:linear-gradient(135deg,#6366f1,#22c55e);
+  min-height:100vh;
+  padding:12px;
 }
-
 .card{
-width:92%;
-max-width:430px;
-background:linear-gradient(135deg,#ffffff,#e0f2fe);
-border-radius:24px;
-padding:25px;
-box-shadow:0 15px 40px rgba(0,0,0,.45);
-text-align:center;
-position:relative;
-overflow:hidden;
+  background:white;
+  border-radius:16px;
+  padding:16px;
+  max-width:420px;
+  margin:auto;
+  box-shadow:0 10px 25px rgba(0,0,0,.3);
 }
-
-.card::before{
-content:"🩺 🐾 💊 🐶 🐱";
-position:absolute;
-inset:0;
-display:flex;
-justify-content:center;
-align-items:center;
-font-size:52px;
-opacity:0.14;
-pointer-events:none;
+h2{
+  text-align:center;
+  margin-top:0;
 }
-
-input, textarea{
-width:100%;
-padding:12px;
-margin-top:10px;
-border-radius:12px;
-border:1px solid #ccc;
-font-size:15px;
+.item{
+  border-left:5px solid #22c55e;
+  padding:10px;
+  margin-bottom:10px;
+  background:#f9fafb;
+  border-radius:10px;
 }
-
-button{
-width:100%;
-padding:14px;
-margin-top:14px;
-border-radius:14px;
-border:none;
-font-size:16px;
-font-weight:bold;
-background:linear-gradient(90deg,#2563eb,#06b6d4);
-color:white;
+.label{
+  font-size:12px;
+  color:#555;
 }
-
-.back{
-background:#64748b;
+.value{
+  font-weight:bold;
+  margin-bottom:4px;
 }
 </style>
 </head>
 
 <body>
-
 <div class="card">
-
-<h2>🩺 Historial Médico</h2>
-
-<input placeholder="Nombre del padecimiento">
-<input placeholder="Tipo (crónico, temporal, alergia...)">
-<input placeholder="Medicamento / Tratamiento">
-<textarea rows="3" placeholder="Notas importantes"></textarea>
-
-<button>➕ Guardar historial</button>
-
-<button class="back" onclick="volver()">⬅ Volver</button>
-
+  <h2>🩺 Historial Médico</h2>
+  <div id="lista"></div>
 </div>
 
 <script>
-function volver(){
-window.location.href="home.html";
+function cargarHistorial(){
+  try{
+    const datos = JSON.parse(window.AppInventor.getWebViewString());
+    const contenedor = document.getElementById("lista");
+    contenedor.innerHTML = "";
+
+    if(datos.length === 0){
+      contenedor.innerHTML = "<p>No hay registros aún.</p>";
+      return;
+    }
+
+    datos.forEach(item=>{
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <div class="label">Fecha</div>
+        <div class="value">${item.fecha || "-"}</div>
+
+        <div class="label">Motivo</div>
+        <div class="value">${item.motivo || "-"}</div>
+
+        <div class="label">Tratamiento</div>
+        <div class="value">${item.tratamiento || "-"}</div>
+
+        <div class="label">Notas</div>
+        <div class="value">${item.notas || "-"}</div>
+      `;
+      contenedor.appendChild(div);
+    });
+
+  }catch(e){}
 }
+
+setInterval(cargarHistorial, 700);
 </script>
 
 </body>
