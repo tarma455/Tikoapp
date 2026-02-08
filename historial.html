@@ -37,58 +37,39 @@ button{
   font-weight:bold;
 }
 .back{background:#64748b;}
-.ok{margin-top:10px;color:green;font-weight:bold;}
+.ok{color:green;margin-top:10px;font-weight:bold;}
 </style>
 </head>
 
 <body>
 <div class="card">
-  <h2>🩺 Historial Médico</h2>
+  <h2>🩺 Registrar Padecimiento</h2>
 
   <input id="padecimiento" placeholder="Padecimiento">
-  <input id="fecha" type="date">
-  <textarea id="notas" placeholder="Notas médicas"></textarea>
+  <textarea id="tratamiento" placeholder="Tratamiento"></textarea>
 
   <button onclick="guardar()">💾 Guardar</button>
   <button class="back" onclick="volver()">⬅ Volver</button>
 
-  <div id="lista"></div>
+  <div id="msg" class="ok"></div>
 </div>
 
 <script>
 function guardar(){
-  const datos = {
-    tipo: "historial",
-    padecimiento: padecimiento.value,
-    fecha: fecha.value,
-    notas: notas.value
+  const datos={
+    tipo:"historial",
+    texto: padecimiento.value + " – Tratamiento: " + tratamiento.value
   };
 
   if(window.AppInventor){
     window.AppInventor.setWebViewString(JSON.stringify(datos));
+    document.getElementById("msg").innerText="✅ Padecimiento enviado";
   }
 }
 
 function volver(){
   window.location.href="home.html";
 }
-
-// Mostrar historial recibido
-function recibir(){
-  try{
-    const data = JSON.parse(window.AppInventor.getWebViewString());
-    if(data.historial){
-      document.getElementById("lista").innerHTML="";
-      data.historial.forEach(h=>{
-        const p=document.createElement("p");
-        p.innerText="🩺 "+h;
-        document.getElementById("lista").appendChild(p);
-      });
-    }
-  }catch(e){}
-}
-setInterval(recibir,600);
 </script>
 </body>
 </html>
-
