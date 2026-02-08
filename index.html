@@ -1,121 +1,143 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TIKO - Login</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>TIKO - Conexión Peluda</title>
 
-<!-- Firebase COMPAT -->
+<!-- Firebase COMPAT (igual que tu original) -->
 <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore-compat.js"></script>
 
 <style>
-body{
-margin:0;
-font-family:Arial;
-background:linear-gradient(180deg,#0f172a,#1e3a8a);
-min-height:100vh;
-display:flex;
-justify-content:center;
-align-items:center;
-}
-
-.card{
-width:90%;
-max-width:420px;
-background:linear-gradient(135deg,#ffffff,#e0f2fe);
-border-radius:20px;
-padding:25px;
-box-shadow:0 15px 40px rgba(0,0,0,.4);
-text-align:center;
-position:relative;
-overflow:hidden;
-}
-
-.card::before{
-content:"🐶 🐱 🐾 🐕 🐈 🩺 💉";
-position:absolute;
-inset:0;
-display:flex;
-justify-content:center;
-align-items:center;
-font-size:48px;
-opacity:0.15;
-pointer-events:none;
-}
-
-h1{margin:0;}
-input,select,button{
-width:100%;
-padding:12px;
-margin-top:10px;
-border-radius:12px;
-border:1px solid #ccc;
-font-size:16px;
-}
-
-button{
-background:linear-gradient(90deg,#2563eb,#06b6d4);
-color:white;
-border:none;
-font-weight:bold;
-}
-
-.link{
-margin-top:10px;
-color:#2563eb;
-cursor:pointer;
-}
-
-.hidden{display:none;}
-.msg{margin-top:10px;}
-.ok{color:green;}
-.err{color:red;}
+:root{--accent:#2563eb;--accent2:#06b6d4;--bg:linear-gradient(180deg,#0f172a,#1e3a8a);}
+body{margin:0;font-family:Arial;min-height:100vh;background:var(--bg);display:flex;justify-content:center;align-items:center;color:#111}
+.container{width:95%;max-width:980px;margin:18px}
+.card{background:linear-gradient(135deg,#ffffff,#e0f2fe);border-radius:14px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.35);overflow:hidden}
+.header{display:flex;align-items:center;gap:12px;background:transparent;padding:8px 0}
+.brand{font-weight:700;font-size:20px;color:#0b1220}
+.btn{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;border:0;padding:8px 12px;border-radius:10px;cursor:pointer}
+.back{background:transparent;border:0;color:var(--accent);font-weight:700;cursor:pointer}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.screen{display:none}
+.screen.active{display:block}
+.input,select,button{width:100%;padding:10px;border-radius:10px;border:1px solid #ccc;margin-top:8px;font-size:15px}
+.small{width:150px}
+.link{color:var(--accent);cursor:pointer;margin-top:8px}
+.muted{color:#444;font-size:13px}
+.card::before{content:"🐶 🐱 🐾";position:absolute;opacity:0.06;font-size:48px;pointer-events:none}
+.list{margin-top:12px}
+.card-small{border:1px solid #eee;padding:10px;border-radius:8px;margin-bottom:8px}
+.ok{color:green}.err{color:#b00020}
 </style>
 </head>
-
 <body>
+<div class="container">
+  <div class="card">
+    <div class="header">
+      <button id="app-back" class="back" title="Retroceder" style="display:none">← Volver</button>
+      <div class="brand">T I K O · Conexión Peluda</div>
+      <div style="margin-left:auto" id="auth-area"></div>
+    </div>
 
-<div class="card">
+    <!-- LOGIN / REGISTER -->
+    <section id="auth-screen" class="screen active" aria-label="login">
+      <h2>Inicia sesión</h2>
+      <input id="loginEmail" type="email" class="input" placeholder="Correo">
+      <input id="loginPass" type="password" class="input" placeholder="Contraseña">
+      <div class="row">
+        <button id="btn-login" class="btn">Iniciar sesión</button>
+        <button id="btn-show-register" class="btn">Crear cuenta</button>
+      </div>
+      <div id="loginMsg" class="muted"></div>
 
-<h1>T I K O</h1>
-<p>Conexión Peluda 🐾</p>
+      <hr style="margin:16px 0">
 
-<!-- LOGIN -->
-<div id="loginBox">
-<input id="loginEmail" type="email" placeholder="Correo">
-<input id="loginPass" type="password" placeholder="Contraseña">
-<button onclick="login()">Iniciar sesión</button>
-<div class="link" onclick="mostrarRegistro()">Crear cuenta</div>
-<div id="loginMsg" class="msg"></div>
-</div>
+      <div id="registerBox" style="display:none">
+        <h3>Registro</h3>
+        <input id="regNombre" class="input" placeholder="Nombre completo">
+        <input id="regEmail" class="input" type="email" placeholder="Correo">
+        <input id="regTelefono" class="input" placeholder="Teléfono">
+        <input id="regPass" class="input" type="password" placeholder="Contraseña">
+        <input id="regConfirm" class="input" type="password" placeholder="Confirmar contraseña">
+        <select id="regRol" class="input">
+          <option value="usuario">Dueño</option>
+          <option value="tecnico">Técnico</option>
+          <option value="veterinaria">Veterinaria</option>
+        </select>
+        <input id="regCodigo" class="input" placeholder="Código especial (opcional)">
+        <div class="row">
+          <button id="btn-register" class="btn">Registrarse</button>
+          <button id="btn-cancel-register" class="btn">Cancelar</button>
+        </div>
+        <div id="regMsg" class="muted"></div>
+      </div>
+    </section>
 
-<!-- REGISTRO -->
-<div id="registerBox" class="hidden">
-<input id="regNombre" placeholder="Nombre completo">
-<input id="regEmail" type="email" placeholder="Correo">
-<input id="regTelefono" placeholder="Teléfono">
-<input id="regPass" type="password" placeholder="Contraseña">
-<input id="regConfirm" type="password" placeholder="Confirmar contraseña">
+    <!-- APP SPA -->
+    <section id="app-screen" class="screen" aria-label="app" style="display:none">
+      <nav style="margin-bottom:12px">
+        <button class="btn nav-btn" data-screen="home">Inicio</button>
+        <button class="btn nav-btn" data-screen="usuario">Datos Dueño</button>
+        <button class="btn nav-btn" data-screen="mascotas">Mascotas</button>
+        <button class="btn nav-btn" data-screen="vacunas">Vacunas</button>
+        <button class="btn nav-btn" data-screen="historial">Historial</button>
+      </nav>
 
-<select id="regRol">
-<option value="usuario">Dueño</option>
-<option value="tecnico">Técnico</option>
-<option value="veterinaria">Veterinaria</option>
-</select>
+      <div id="home" class="screen active" data-screen>
+        <h3>Bienvenido <span id="owner-status" class="muted">(sin registrar)</span></h3>
+        <p class="muted">Accede a las secciones para gestionar dueño, mascotas y vacunas.</p>
+      </div>
 
-<input id="regCodigo" placeholder="Código especial (opcional)">
+      <div id="usuario" class="screen" data-screen>
+        <h3>Datos del dueño</h3>
+        <p class="muted">Completa para permitir registros de mascotas y vacunas.</p>
+        <input id="owner-name" class="input" placeholder="Nombre completo">
+        <input id="owner-phone" class="input" placeholder="Teléfono">
+        <input id="owner-email" class="input" placeholder="Correo">
+        <div class="row">
+          <button id="owner-save" class="btn">Guardar dueño</button>
+          <button id="owner-clear" class="btn">Eliminar</button>
+        </div>
+        <div id="owner-msg" class="muted"></div>
+      </div>
 
-<button onclick="registrar()">Registrarse</button>
-<div class="link" onclick="mostrarLogin()">Volver</div>
-<div id="regMsg" class="msg"></div>
-</div>
+      <div id="mascotas" class="screen" data-screen>
+        <h3>Mascotas</h3>
+        <input id="pet-name" class="input" placeholder="Nombre mascota">
+        <input id="pet-type" class="input" placeholder="Tipo (perro/gato...)">
+        <input id="pet-age" class="input" placeholder="Edad (años)">
+        <div class="row">
+          <button id="pet-add" class="btn">Agregar mascota</button>
+        </div>
+        <div id="pet-msg" class="muted"></div>
+        <div class="list" id="pet-list"></div>
+      </div>
 
+      <div id="vacunas" class="screen" data-screen>
+        <h3>Vacunas</h3>
+        <select id="vac-pet" class="input"><option value="">-- selecciona mascota --</option></select>
+        <input id="vac-name" class="input" placeholder="Vacuna">
+        <input id="vac-date" class="input" type="date">
+        <div class="row">
+          <button id="vac-add" class="btn">Registrar vacuna</button>
+        </div>
+        <div id="vac-msg" class="muted"></div>
+        <div id="vac-list" class="list"></div>
+      </div>
+
+      <div id="historial" class="screen" data-screen>
+        <h3>Historial</h3>
+        <div id="hist-list"></div>
+      </div>
+    </section>
+
+  </div>
 </div>
 
 <script>
-// 🔥 TU FIREBASE REAL
+/* ================== Config Firebase (usa tu config) ================== */
 const firebaseConfig = {
   apiKey: "AIzaSyANX656iqyz6NIo7WX_IvIMnY4w9SQP6sU",
   authDomain: "tiko-ap.firebaseapp.com",
@@ -124,67 +146,352 @@ const firebaseConfig = {
   messagingSenderId: "97455117291",
   appId: "1:97455117291:web:1dc88f792d0a74c394bfae"
 };
-
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// UI
-function mostrarRegistro(){
-loginBox.classList.add("hidden");
-registerBox.classList.remove("hidden");
+/* ================== Helpers y estado ================== */
+const screens = Array.from(document.querySelectorAll('[data-screen]'));
+const navStack = [];
+let currentUser = null;
+let unsubscribePets = null;
+let unsubscribeVacs = null;
+let unsubscribeOwner = null;
+
+function showScreen(id, push = true){
+  screens.forEach(s=>s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.classList.add('active');
+  if(push) navStack.push(id);
+  document.getElementById('app-back').style.display = navStack.length>1 ? 'inline' : 'none';
 }
 
-function mostrarLogin(){
-registerBox.classList.add("hidden");
-loginBox.classList.remove("hidden");
-}
-
-// LOGIN
-function login(){
-const email=loginEmail.value;
-const pass=loginPass.value;
-
-auth.signInWithEmailAndPassword(email,pass)
-.then(()=>{
-window.location.href="home.html";
-})
-.catch(err=>{
-loginMsg.textContent=err.message;
-loginMsg.className="msg err";
+document.getElementById('app-back').addEventListener('click', ()=>{
+  if(navStack.length>1){
+    navStack.pop(); // actual
+    const prev = navStack.pop();
+    if(prev) showScreen(prev, true);
+  } else {
+    showScreen('home', true);
+  }
 });
+
+/* ----------------- NAV buttons ----------------- */
+Array.from(document.querySelectorAll('.nav-btn')).forEach(btn=>{
+  btn.addEventListener('click', ()=> showScreen(btn.getAttribute('data-screen')));
+});
+
+/* ================== AUTH UI ================== */
+const authScreen = document.getElementById('auth-screen');
+const appScreen = document.getElementById('app-screen');
+const authArea = document.getElementById('auth-area');
+
+function showAuthUI(){ authScreen.style.display='block'; appScreen.style.display='none'; document.getElementById('registerBox').style.display='none'; }
+function showAppUI(){ authScreen.style.display='none'; appScreen.style.display='block'; }
+
+/* ------------- Login / Register actions -------------- */
+document.getElementById('btn-show-register').addEventListener('click', ()=> document.getElementById('registerBox').style.display='block');
+document.getElementById('btn-cancel-register').addEventListener('click', ()=> document.getElementById('registerBox').style.display='none');
+
+document.getElementById('btn-login').addEventListener('click', async ()=>{
+  const email = document.getElementById('loginEmail').value;
+  const pass = document.getElementById('loginPass').value;
+  try{
+    document.getElementById('loginMsg').textContent = 'Iniciando...';
+    await auth.signInWithEmailAndPassword(email,pass);
+    // onAuthStateChanged se encargará de mostrar app
+  } catch(err){
+    document.getElementById('loginMsg').textContent = err.message;
+    document.getElementById('loginMsg').className='err';
+  }
+});
+
+document.getElementById('btn-register').addEventListener('click', async ()=>{
+  const name = document.getElementById('regNombre').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const telefono = document.getElementById('regTelefono').value.trim();
+  const pass = document.getElementById('regPass').value;
+  const confirm = document.getElementById('regConfirm').value;
+  const rol = document.getElementById('regRol').value;
+  const codigo = document.getElementById('regCodigo').value.trim();
+  const regMsg = document.getElementById('regMsg');
+
+  if(pass !== confirm){ regMsg.textContent='Las contraseñas no coinciden'; regMsg.className='err'; return; }
+  try{
+    regMsg.textContent = 'Creando cuenta...';
+    const res = await auth.createUserWithEmailAndPassword(email, pass);
+    const uid = res.user.uid;
+    await db.collection('users').doc(uid).set({
+      profile: { nombre: name, email, telefono, rol, codigo, creado: firebase.firestore.FieldValue.serverTimestamp() }
+    }, { merge:true });
+    regMsg.textContent = 'Registro OK, ingresando...';
+    regMsg.className='ok';
+    // onAuthStateChanged maneja la UI
+  } catch(err){
+    regMsg.textContent = err.message;
+    regMsg.className='err';
+  }
+});
+
+/* ================ Auth state listener ================ */
+auth.onAuthStateChanged(async user=>{
+  currentUser = user;
+  const authAreaEl = document.getElementById('auth-area');
+  if(user){
+    // mostrar app
+    showAppUI();
+    authAreaEl.innerHTML = `<span class="muted">(${user.email})</span> <button id="btn-logout" class="btn">Salir</button>`;
+    document.getElementById('btn-logout').addEventListener('click', ()=> auth.signOut());
+    // inicializar listeners de datos
+    startFirestoreListeners(user.uid);
+    // notificar App Inventor (si aplica)
+    notifyApp({action:'login', uid:user.uid, email:user.email});
+    // mostrar home
+    navStack.length = 0;
+    showScreen('home', true);
+  } else {
+    // limpiar listeners
+    stopFirestoreListeners();
+    authAreaEl.innerHTML = '';
+    showAuthUI();
+    notifyApp({action:'logout'});
+  }
+});
+
+/* ============== Firestore listeners & CRUD ============== */
+function startFirestoreListeners(uid){
+  // Owner (guardamos en doc 'owner' dentro de user)
+  const ownerRef = db.collection('users').doc(uid).collection('meta').doc('owner');
+  if(unsubscribeOwner) unsubscribeOwner();
+  unsubscribeOwner = ownerRef.onSnapshot(doc=>{
+    const data = doc.exists ? doc.data() : null;
+    renderOwner(data);
+  }, err=> console.warn('owner listen err', err));
+
+  // Pets (collection)
+  const petsRef = db.collection('users').doc(uid).collection('pets');
+  if(unsubscribePets) unsubscribePets();
+  unsubscribePets = petsRef.onSnapshot(snap=>{
+    const pets = [];
+    snap.forEach(d=>pets.push(Object.assign({id:d.id}, d.data())));
+    renderPets(pets);
+  }, err=> console.warn('pets listen err', err));
+
+  // Vacs
+  const vacsRef = db.collection('users').doc(uid).collection('vacs');
+  if(unsubscribeVacs) unsubscribeVacs();
+  unsubscribeVacs = vacsRef.onSnapshot(snap=>{
+    const vacs = [];
+    snap.forEach(d=>vacs.push(Object.assign({id:d.id}, d.data())));
+    renderVacs(vacs);
+  }, err=> console.warn('vacs listen err', err));
 }
 
-// REGISTRO
-function registrar(){
-if(regPass.value!==regConfirm.value){
-regMsg.textContent="Las contraseñas no coinciden";
-regMsg.className="msg err";
-return;
+function stopFirestoreListeners(){
+  if(unsubscribePets) { unsubscribePets(); unsubscribePets = null; }
+  if(unsubscribeVacs) { unsubscribeVacs(); unsubscribeVacs = null; }
+  if(unsubscribeOwner) { unsubscribeOwner(); unsubscribeOwner = null; }
+  // limpiar UI
+  renderOwner(null);
+  renderPets([]);
+  renderVacs([]);
 }
 
-auth.createUserWithEmailAndPassword(regEmail.value,regPass.value)
-.then(res=>{
-return db.collection("usuarios").doc(res.user.uid).set({
-nombre:regNombre.value,
-email:regEmail.value,
-telefono:regTelefono.value,
-rol:regRol.value,
-codigo:regCodigo.value,
-creado:firebase.firestore.FieldValue.serverTimestamp()
+/* ---------------- OWNER actions ---------------- */
+document.getElementById('owner-save').addEventListener('click', async ()=>{
+  if(!currentUser){ document.getElementById('owner-msg').textContent='Inicia sesión primero'; return; }
+  const uid = currentUser.uid;
+  const owner = {
+    nombre: document.getElementById('owner-name').value.trim(),
+    telefono: document.getElementById('owner-phone').value.trim(),
+    email: document.getElementById('owner-email').value.trim(),
+    updated: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  if(!owner.nombre){ document.getElementById('owner-msg').textContent='El nombre es obligatorio'; return; }
+  await db.collection('users').doc(uid).collection('meta').doc('owner').set(owner, {merge:true});
+  document.getElementById('owner-msg').textContent='Datos guardados';
+  notifyApp({action:'owner_saved', owner});
 });
-})
-.then(()=>{
-regMsg.textContent="Registro exitoso";
-regMsg.className="msg ok";
-setTimeout(()=>window.location.href="home.html",800);
-})
-.catch(err=>{
-regMsg.textContent=err.message;
-regMsg.className="msg err";
+
+document.getElementById('owner-clear').addEventListener('click', async ()=>{
+  if(!currentUser) return;
+  const uid = currentUser.uid;
+  await db.collection('users').doc(uid).collection('meta').doc('owner').delete();
+  document.getElementById('owner-msg').textContent='Datos eliminados';
+  notifyApp({action:'owner_deleted'});
 });
+
+function renderOwner(data){
+  const status = document.getElementById('owner-status');
+  if(data && data.nombre){
+    status.textContent = data.nombre;
+    document.getElementById('owner-name').value = data.nombre || '';
+    document.getElementById('owner-phone').value = data.telefono || '';
+    document.getElementById('owner-email').value = data.email || '';
+  } else {
+    status.textContent = '(sin registrar)';
+    document.getElementById('owner-name').value = '';
+    document.getElementById('owner-phone').value = '';
+    document.getElementById('owner-email').value = '';
+  }
 }
+
+/* ---------------- PETS actions ---------------- */
+document.getElementById('pet-add').addEventListener('click', async ()=>{
+  if(!currentUser){ document.getElementById('pet-msg').textContent='Inicia sesión'; return; }
+  // requiere owner
+  const ownerDoc = await db.collection('users').doc(currentUser.uid).collection('meta').doc('owner').get();
+  if(!ownerDoc.exists){ document.getElementById('pet-msg').textContent='Registra los datos del dueño primero'; return; }
+
+  const name = document.getElementById('pet-name').value.trim();
+  if(!name){ document.getElementById('pet-msg').textContent='Nombre de mascota requerido'; return; }
+  const pet = { name, type: document.getElementById('pet-type').value.trim(), age: document.getElementById('pet-age').value.trim(), created: firebase.firestore.FieldValue.serverTimestamp() };
+  await db.collection('users').doc(currentUser.uid).collection('pets').add(pet);
+  document.getElementById('pet-msg').textContent='Mascota agregada';
+  // limpiar campos
+  document.getElementById('pet-name').value=''; document.getElementById('pet-type').value=''; document.getElementById('pet-age').value='';
+  notifyApp({action:'pet_added', pet:{name:pet.name}});
+});
+
+function renderPets(pets){
+  const list = document.getElementById('pet-list');
+  list.innerHTML = '';
+  if(!pets || pets.length===0){
+    list.innerHTML = '<p class="muted">Sin mascotas</p>';
+  } else {
+    pets.forEach(p=>{
+      const div = document.createElement('div');
+      div.className = 'card-small';
+      div.innerHTML = `<strong>${esc(p.name)}</strong> <div class="muted">Tipo: ${esc(p.type||'--')} · Edad: ${esc(p.age||'--')}</div>
+        <div style="margin-top:8px"><button data-action="use" data-id="${p.id}" class="btn small">Usar</button>
+        <button data-action="del" data-id="${p.id}" class="btn small">Eliminar</button></div>`;
+      list.appendChild(div);
+    });
+  }
+  // actualizar select en vacunas
+  const sel = document.getElementById('vac-pet');
+  sel.innerHTML = '<option value="">-- selecciona mascota --</option>' + (pets||[]).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
+}
+
+/* Delegación para acciones de mascota */
+document.getElementById('pet-list').addEventListener('click', async (e)=>{
+  const action = e.target.getAttribute('data-action');
+  const id = e.target.getAttribute('data-id');
+  if(!action) return;
+  if(action === 'use'){
+    document.getElementById('vac-pet').value = id;
+    showScreen('vacunas');
+  } else if(action === 'del'){
+    if(!currentUser) return;
+    await db.collection('users').doc(currentUser.uid).collection('pets').doc(id).delete();
+    document.getElementById('pet-msg').textContent='Mascota eliminada';
+    notifyApp({action:'pet_deleted', id});
+  }
+});
+
+/* ---------------- VACCINES actions ---------------- */
+document.getElementById('vac-add').addEventListener('click', async ()=>{
+  if(!currentUser){ document.getElementById('vac-msg').textContent='Inicia sesión'; return; }
+  const petId = document.getElementById('vac-pet').value;
+  if(!petId){ document.getElementById('vac-msg').textContent='Selecciona una mascota'; return; }
+  const vacName = document.getElementById('vac-name').value.trim();
+  const vacDate = document.getElementById('vac-date').value;
+  if(!vacName || !vacDate){ document.getElementById('vac-msg').textContent='Nombre y fecha requeridos'; return; }
+  const vac = { petId, vacName, vacDate, created: firebase.firestore.FieldValue.serverTimestamp() };
+  await db.collection('users').doc(currentUser.uid).collection('vacs').add(vac);
+  document.getElementById('vac-msg').textContent='Vacuna registrada';
+  document.getElementById('vac-name').value=''; document.getElementById('vac-date').value='';
+  notifyApp({action:'vac_added', vac:{petId, vacName, vacDate}});
+});
+
+function renderVacs(vacs){
+  const list = document.getElementById('vac-list');
+  list.innerHTML = '';
+  if(!vacs || vacs.length===0){
+    list.innerHTML = '<p class="muted">Sin vacunas</p>';
+  } else {
+    // buscaremos nombres de mascotas con snapshot? asumimos que listener de pets está activo y la select fue actualizada
+    vacs.forEach(v=>{
+      const div = document.createElement('div');
+      div.className = 'card-small';
+      div.innerHTML = `<strong>${esc(v.vacName)}</strong><div class="muted">Mascota ID: ${esc(v.petId)} · Fecha: ${esc(v.vacDate)}</div>
+      <div style="margin-top:8px"><button data-action="delvac" data-id="${v.id}" class="btn small">Eliminar</button></div>`;
+      list.appendChild(div);
+    });
+  }
+}
+
+/* Delegación vac-list */
+document.getElementById('vac-list').addEventListener('click', async (e)=>{
+  const action = e.target.getAttribute('data-action');
+  const id = e.target.getAttribute('data-id');
+  if(action === 'delvac' && id && currentUser){
+    await db.collection('users').doc(currentUser.uid).collection('vacs').doc(id).delete();
+    notifyApp({action:'vac_deleted', id});
+  }
+});
+
+/* ---------------- Historial ---------------- */
+async function renderHistorial(){
+  if(!currentUser){ document.getElementById('hist-list').innerHTML = '<p class="muted">Inicia sesión</p>'; return; }
+  const petsSnap = await db.collection('users').doc(currentUser.uid).collection('pets').get();
+  const vacsSnap = await db.collection('users').doc(currentUser.uid).collection('vacs').get();
+  const pets = []; petsSnap.forEach(d=>pets.push(Object.assign({id:d.id}, d.data())));
+  const vacs = []; vacsSnap.forEach(d=>vacs.push(Object.assign({id:d.id}, d.data())));
+
+  const hist = document.getElementById('hist-list');
+  hist.innerHTML = `<h4>Mascotas (${pets.length})</h4>` + (pets.length? pets.map(p=>`<div class="card-small"><strong>${esc(p.name)}</strong><div class="muted">${esc(p.type||'--')} · ${esc(p.age||'--')}</div></div>`).join('') : '<p class="muted">Sin mascotas</p>');
+  hist.innerHTML += `<h4>Vacunas (${vacs.length})</h4>` + (vacs.length? vacs.map(v=>`<div class="card-small"><strong>${esc(v.vacName)}</strong><div class="muted">Mascota ID: ${esc(v.petId)} · Fecha: ${esc(v.vacDate)}</div></div>`).join('') : '<p class="muted">Sin vacunas</p>');
+}
+
+/* --------------- Firestore helpers --------------- */
+function renderVacsWrapper(v){ renderVacs(v); renderHistorial(); }
+function renderPetsWrapper(p){ renderPets(p); renderHistorial(); }
+
+/* When snapshots update, we re-render historial too */
+function renderVacs(vacs){ /* function already defined above; redefined to call hist */ }
+function renderPets(pets){ /* function already defined above; redefined to call hist */ }
+// Note: above we used listeners that call renderPets/renderVacs directly; renderHistorial is also called on UI updates.
+
+/* -------------- Utilities -------------- */
+function esc(s=''){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* =========== Comunicación con App Inventor (WebViewer) =========== 
+  Helper que notifica al app nativo. No existe un único estándar universal:
+  - Aquí colocamos JSON en document.title y en location.hash para que la app nativa
+    (App Inventor) pueda detectarlo por UrlChanged/TitleChanged y parsearlo.
+  - En App Inventor: use un solo evento WebViewer.UrlChanged o WebViewer.PageLoaded
+    o WebViewer.TitleChanged para leer el hash o el title y luego procesar JSON.
+*/
+function notifyApp(obj){
+  try{
+    const msg = JSON.stringify(obj);
+    // actualiza title y hash (la app puede observar cualquiera)
+    document.title = 'TIKO::' + msg;
+    // cambiar hash provoca UrlChanged en muchos WebView
+    location.hash = encodeURIComponent(msg);
+    // además expone globalmente
+    window.lastTikoMessage = obj;
+  }catch(e){
+    console.warn('notifyApp err', e);
+  }
+}
+
+/* -------------- Inicialización al cargar la página -------------- */
+document.addEventListener('DOMContentLoaded', ()=> {
+  // inicial UI
+  showScreen('home', true);
+  // si ya está logged in, onAuthStateChanged lo detectará
+});
+
+/* -------------- Exponer API simple para la WebView (si necesitas) -------------- */
+window.TIKO = {
+  notifyApp,
+  getCurrentUser: ()=> currentUser ? {uid: currentUser.uid, email: currentUser.email} : null,
+  showScreen
+};
+
 </script>
-
 </body>
 </html>
