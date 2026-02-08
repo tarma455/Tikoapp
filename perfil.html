@@ -1,22 +1,122 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Perfil</title>
+
+<!-- Firebase COMPAT -->
+<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore-compat.js"></script>
+
+<style>
+body{
+  background:#0f172a;
+  color:white;
+  font-family:Arial;
+  text-align:center;
+  padding:20px;
+}
+.card{
+  background:#1e293b;
+  padding:20px;
+  border-radius:16px;
+  max-width:400px;
+  margin:auto;
+}
+.item{
+  margin:10px 0;
+}
+.label{
+  color:#93c5fd;
+  font-size:13px;
+}
+.value{
+  font-size:16px;
+  font-weight:bold;
+}
+button{
+  margin-top:15px;
+  padding:12px;
+  width:100%;
+  border-radius:12px;
+  border:none;
+  font-size:15px;
+  background:#2563eb;
+  color:white;
+}
+</style>
 </head>
 
-<body style="background:#0f172a;color:white;text-align:center">
+<body>
 
-<h2>👤 Perfil</h2>
+<div class="card">
+  <h2>👤 Perfil</h2>
 
-<p>Editar datos del usuario</p>
+  <div class="item">
+    <div class="label">Nombre</div>
+    <div id="nombre" class="value">—</div>
+  </div>
 
-<button onclick="volver()">⬅ Volver</button>
+  <div class="item">
+    <div class="label">Correo</div>
+    <div id="email" class="value">—</div>
+  </div>
+
+  <div class="item">
+    <div class="label">Teléfono</div>
+    <div id="telefono" class="value">—</div>
+  </div>
+
+  <div class="item">
+    <div class="label">Rol</div>
+    <div id="rol" class="value">—</div>
+  </div>
+
+  <button onclick="volver()">⬅ Volver</button>
+</div>
 
 <script>
+// 🔥 MISMA CONFIG QUE INDEX
+const firebaseConfig = {
+  apiKey: "AIzaSyANX656iqyz6NIo7WX_IvIMnY4w9SQP6sU",
+  authDomain: "tiko-ap.firebaseapp.com",
+  projectId: "tiko-ap",
+  storageBucket: "tiko-ap.appspot.com",
+  messagingSenderId: "97455117291",
+  appId: "1:97455117291:web:1dc88f792d0a74c394bfae"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// Cargar datos del usuario
+auth.onAuthStateChanged(user=>{
+  if(!user){
+    alert("Sesión no válida");
+    window.location.href="login.html";
+    return;
+  }
+
+  document.getElementById("email").innerText = user.email;
+
+  db.collection("usuarios").doc(user.uid).get()
+  .then(doc=>{
+    if(doc.exists){
+      const d = doc.data();
+      nombre.innerText = d.nombre || "—";
+      telefono.innerText = d.telefono || "—";
+      rol.innerText = d.rol || "—";
+    }else{
+      alert("No hay datos de usuario en Firestore");
+    }
+  });
+});
+
 function volver(){
-window.location.href="home.html";
+  window.location.href="home.html";
 }
 </script>
 
