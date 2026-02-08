@@ -1,67 +1,77 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TIKO - Home</title>
+<title>TIKO - Login</title>
+
+<!-- Firebase COMPAT -->
+<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore-compat.js"></script>
 
 <style>
 body{
-  margin:0;
-  font-family:Arial;
-  background:linear-gradient(180deg,#0f172a,#1e3a8a);
-  min-height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
+margin:0;
+font-family:Arial;
+background:linear-gradient(180deg,#0f172a,#1e3a8a);
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
 }
 
 .card{
-  width:92%;
-  max-width:430px;
-  background:linear-gradient(135deg,#ffffff,#e0f2fe);
-  border-radius:24px;
-  padding:25px;
-  box-shadow:0 15px 40px rgba(0,0,0,.45);
-  text-align:center;
-  position:relative;
-  overflow:hidden;
+width:90%;
+max-width:420px;
+background:linear-gradient(135deg,#ffffff,#e0f2fe);
+border-radius:20px;
+padding:25px;
+box-shadow:0 15px 40px rgba(0,0,0,.4);
+text-align:center;
+position:relative;
+overflow:hidden;
 }
 
 .card::before{
-  content:"🐶 🐱 🐾 🩺 💉";
-  position:absolute;
-  inset:0;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  font-size:52px;
-  opacity:0.14;
-  pointer-events:none;
+content:"🐶 🐱 🐾 🐕 🐈 🩺 💉";
+position:absolute;
+inset:0;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:48px;
+opacity:0.15;
+pointer-events:none;
 }
 
-.menu{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:15px;
-  margin-top:20px;
+h1{margin:0;}
+input,select,button{
+width:100%;
+padding:12px;
+margin-top:10px;
+border-radius:12px;
+border:1px solid #ccc;
+font-size:16px;
 }
 
-.btn{
-  background:linear-gradient(90deg,#2563eb,#06b6d4);
-  color:white;
-  padding:18px;
-  border-radius:18px;
-  font-size:15px;
-  font-weight:bold;
-  cursor:pointer;
-  text-align:center;
+button{
+background:linear-gradient(90deg,#2563eb,#06b6d4);
+color:white;
+border:none;
+font-weight:bold;
 }
 
-.logout{
-  margin-top:20px;
-  background:linear-gradient(90deg,#ef4444,#dc2626);
+.link{
+margin-top:10px;
+color:#2563eb;
+cursor:pointer;
 }
+
+.hidden{display:none;}
+.msg{margin-top:10px;}
+.ok{color:green;}
+.err{color:red;}
 </style>
 </head>
 
@@ -69,43 +79,114 @@ body{
 
 <div class="card">
 
-  <h2>🏠 Inicio</h2>
+<h1>T I K O</h1>
+<p>Conexión Peluda 🐾</p>
 
-  <div class="menu">
+<!-- LOGIN -->
+<div id="loginBox">
+<input id="loginEmail" type="email" placeholder="Correo">
+<input id="loginPass" type="password" placeholder="Contraseña">
+<button onclick="login()">Iniciar sesión</button>
+<div class="link" onclick="mostrarRegistro()">Crear cuenta</div>
+<div id="loginMsg" class="msg"></div>
+</div>
 
-    <!-- Dueño -->
-    <div class="btn" onclick="go('perfil.html')">👤 Dueño</div>
+<!-- REGISTRO -->
+<div id="registerBox" class="hidden">
+<input id="regNombre" placeholder="Nombre completo">
+<input id="regEmail" type="email" placeholder="Correo">
+<input id="regTelefono" placeholder="Teléfono">
+<input id="regPass" type="password" placeholder="Contraseña">
+<input id="regConfirm" type="password" placeholder="Confirmar contraseña">
 
-    <!-- Mascotas (CORREGIDO: plural) -->
-    <div class="btn" onclick="go('mascotas.html')">🐕 Mascotas</div>
+<select id="regRol">
+<option value="usuario">Dueño</option>
+<option value="tecnico">Técnico</option>
+<option value="veterinaria">Veterinaria</option>
+</select>
 
-    <!-- Vacunas -->
-    <div class="btn" onclick="go('vacunas.html')">💉 Vacunas</div>
+<input id="regCodigo" placeholder="Código especial (opcional)">
 
-    <!-- Historial -->
-    <div class="btn" onclick="go('historial.html')">🩺 Historial</div>
-
-    <!-- Cartilla -->
-    <div class="btn" onclick="go('cartilla.html')">📘 Mostrar Cartilla</div>
-
-    <!-- Perfil -->
-    <div class="btn" onclick="go('perfil.html')">⚙ Perfil</div>
-
-  </div>
-
-  <div class="btn logout" onclick="logout()">🚪 Cerrar sesión</div>
+<button onclick="registrar()">Registrarse</button>
+<div class="link" onclick="mostrarLogin()">Volver</div>
+<div id="regMsg" class="msg"></div>
+</div>
 
 </div>
 
 <script>
-function go(p){
-  window.location.href = p;
+// 🔥 TU FIREBASE REAL
+const firebaseConfig = {
+  apiKey: "AIzaSyANX656iqyz6NIo7WX_IvIMnY4w9SQP6sU",
+  authDomain: "tiko-ap.firebaseapp.com",
+  projectId: "tiko-ap",
+  storageBucket: "tiko-ap.appspot.com",
+  messagingSenderId: "97455117291",
+  appId: "1:97455117291:web:1dc88f792d0a74c394bfae"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// UI
+function mostrarRegistro(){
+loginBox.classList.add("hidden");
+registerBox.classList.remove("hidden");
 }
 
-function logout(){
-  window.location.href = "login.html";
+function mostrarLogin(){
+registerBox.classList.add("hidden");
+loginBox.classList.remove("hidden");
+}
+
+// LOGIN
+function login(){
+const email=loginEmail.value;
+const pass=loginPass.value;
+
+auth.signInWithEmailAndPassword(email,pass)
+.then(()=>{
+window.location.href="home.html";
+})
+.catch(err=>{
+loginMsg.textContent=err.message;
+loginMsg.className="msg err";
+});
+}
+
+// REGISTRO
+function registrar(){
+if(regPass.value!==regConfirm.value){
+regMsg.textContent="Las contraseñas no coinciden";
+regMsg.className="msg err";
+return;
+}
+
+auth.createUserWithEmailAndPassword(regEmail.value,regPass.value)
+.then(res=>{
+return db.collection("usuarios").doc(res.user.uid).set({
+nombre:regNombre.value,
+email:regEmail.value,
+telefono:regTelefono.value,
+rol:regRol.value,
+codigo:regCodigo.value,
+creado:firebase.firestore.FieldValue.serverTimestamp()
+});
+})
+.then(()=>{
+regMsg.textContent="Registro exitoso";
+regMsg.className="msg ok";
+setTimeout(()=>window.location.href="home.html",800);
+})
+.catch(err=>{
+regMsg.textContent=err.message;
+regMsg.className="msg err";
+});
 }
 </script>
 
 </body>
 </html>
+
+
