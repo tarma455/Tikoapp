@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<title>TIKO - Vacunas</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TIKO – Vacunas</title>
 
 <style>
 body{
@@ -20,8 +20,7 @@ body{
   width:92%;
   max-width:420px;
   border-radius:18px;
-  padding:18px;
-  box-shadow:0 10px 25px rgba(0,0,0,.3);
+  padding:20px;
 }
 input,button{
   width:100%;
@@ -36,9 +35,8 @@ button{
   border:none;
   font-weight:bold;
 }
-.back{
-  background:#64748b;
-}
+.back{background:#64748b;}
+.ok{margin-top:10px;color:green;font-weight:bold;}
 </style>
 </head>
 
@@ -46,34 +44,51 @@ button{
 <div class="card">
   <h2>💉 Registrar Vacuna</h2>
 
-  <input id="nombre" placeholder="Nombre de la vacuna">
+  <input id="vacuna" placeholder="Nombre de la vacuna">
   <input id="dosis" placeholder="Dosis">
   <input id="fecha" type="date">
-  <input id="proxima" type="date">
-  <input id="notas" placeholder="Notas">
 
   <button onclick="guardar()">💾 Guardar</button>
-  <button class="back" onclick="volver()">⬅ Regresar</button>
+  <button class="back" onclick="volver()">⬅ Volver</button>
+
+  <div id="lista"></div>
+  <div id="msg" class="ok"></div>
 </div>
 
 <script>
 function guardar(){
   const datos = {
-    nombre: nombre.value,
+    tipo: "vacuna",
+    vacuna: vacuna.value,
     dosis: dosis.value,
-    fecha: fecha.value,
-    proxima: proxima.value,
-    notas: notas.value
+    fecha: fecha.value
   };
 
   if(window.AppInventor){
     window.AppInventor.setWebViewString(JSON.stringify(datos));
+    document.getElementById("msg").innerText = "✅ Vacuna enviada para guardar";
   }
 }
 
 function volver(){
   window.location.href="home.html";
 }
+
+// Recibir vacunas guardadas
+function recibir(){
+  try{
+    const data = JSON.parse(window.AppInventor.getWebViewString());
+    if(data.vacunas){
+      document.getElementById("lista").innerHTML="";
+      data.vacunas.forEach(v=>{
+        const p=document.createElement("p");
+        p.innerText="💉 "+v;
+        document.getElementById("lista").appendChild(p);
+      });
+    }
+  }catch(e){}
+}
+setInterval(recibir,600);
 </script>
 </body>
 </html>
