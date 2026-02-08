@@ -1,64 +1,57 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Vacunas</title>
-
+<title>TIKO – Vacunas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 body{
-font-family:Arial;
-background:#1e3a8a;
-display:flex;
-justify-content:center;
-align-items:center;
-min-height:100vh;
+  margin:0;
+  font-family:Arial;
+  background:linear-gradient(135deg,#22c55e,#06b6d4);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
 }
-
 .card{
-background:white;
-width:90%;
-max-width:430px;
-padding:25px;
-border-radius:20px;
+  background:white;
+  width:92%;
+  max-width:420px;
+  border-radius:16px;
+  padding:18px;
+  box-shadow:0 10px 25px rgba(0,0,0,.3);
 }
-
-input{
-width:100%;
-padding:12px;
-margin-top:10px;
-border-radius:10px;
-}
-
-button{
-width:100%;
-padding:14px;
-margin-top:12px;
-background:#06b6d4;
-color:white;
-border:none;
-border-radius:12px;
-}
+h2{text-align:center;margin:0 0 10px}
+.item{margin-bottom:8px}
+.label{font-size:13px;color:#555}
+.value{font-size:15px;font-weight:bold}
 </style>
 </head>
 
 <body>
-
 <div class="card">
-<h2>💉 Vacunas</h2>
+  <h2>💉 Vacunas</h2>
 
-<input placeholder="Nombre vacuna">
-<input placeholder="Fecha aplicada">
-<input placeholder="Próxima dosis">
-
-<button>📅 Seleccionar fecha</button>
-<button>Guardar vacuna</button>
-<button onclick="back()">Volver</button>
+  <div class="item"><div class="label">Vacuna</div><div id="nombre" class="value">—</div></div>
+  <div class="item"><div class="label">Dosis</div><div id="dosis" class="value">—</div></div>
+  <div class="item"><div class="label">Fecha aplicada</div><div id="fecha" class="value">—</div></div>
+  <div class="item"><div class="label">Próxima dosis</div><div id="proxima" class="value">—</div></div>
+  <div class="item"><div class="label">Notas</div><div id="notas" class="value">—</div></div>
 </div>
 
 <script>
-function back(){
-location.href="home.html";
+function recibirDatos(){
+  try{
+    const datos = JSON.parse(window.AppInventor.getWebViewString());
+    document.getElementById("nombre").innerText = datos.nombre || "—";
+    document.getElementById("dosis").innerText = datos.dosis || "—";
+    document.getElementById("fecha").innerText = datos.fecha || "—";
+    document.getElementById("proxima").innerText = datos.proxima || "—";
+    document.getElementById("notas").innerText = datos.notas || "—";
+  }catch(e){}
 }
+setInterval(recibirDatos, 600);
 </script>
 
 </body>
