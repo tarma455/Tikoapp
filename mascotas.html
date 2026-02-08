@@ -5,72 +5,90 @@
 <title>TIKO - Mascotas</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore-compat.js"></script>
-
 <style>
 body{
   margin:0;
   font-family:Arial;
-  background:linear-gradient(180deg,#0f172a,#1e3a8a);
+  background:linear-gradient(135deg,#22c55e,#38bdf8);
   min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
 }
 .card{
-  margin:20px auto;
-  padding:20px;
+  background:white;
+  width:92%;
   max-width:420px;
-  background:linear-gradient(135deg,#ffffff,#e0f2fe);
-  border-radius:20px;
-  box-shadow:0 15px 40px rgba(0,0,0,.4);
+  border-radius:18px;
+  padding:20px;
 }
-.item{margin:10px 0}
-h2{text-align:center;margin-top:0}
+input,button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:12px;
+  border:1px solid #ccc;
+}
+button{
+  background:linear-gradient(90deg,#2563eb,#06b6d4);
+  color:white;
+  border:none;
+  font-weight:bold;
+}
+.back{
+  background:#64748b;
+}
+.ok{
+  margin-top:10px;
+  color:green;
+  font-weight:bold;
+}
 </style>
 </head>
 
 <body>
-
 <div class="card">
-  <h2>🐾 Mis Mascotas</h2>
+  <h2>🐾 Registrar Mascota</h2>
 
-  <div class="item"><b>Nombre:</b> <span id="mNombre">—</span></div>
-  <div class="item"><b>Especie:</b> <span id="mEspecie">—</span></div>
-  <div class="item"><b>Edad:</b> <span id="mEdad">—</span></div>
+  <input id="nombre" placeholder="Nombre de la mascota">
+  <input id="especie" placeholder="Especie">
+  <input id="edad" placeholder="Edad">
 
-  <button onclick="window.location.href='home.html'">⬅ Volver</button>
+  <button onclick="guardar()">💾 Guardar</button>
+  <button class="back" onclick="volver()">⬅ Volver</button>
+
+  <div id="msg" class="ok"></div>
 </div>
 
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyANX656iqyz6NIo7WX_IvIMnY4w9SQP6sU",
-  authDomain: "tiko-ap.firebaseapp.com",
-  projectId: "tiko-ap"
-};
-firebase.initializeApp(firebaseConfig);
+function guardar(){
+  const mascota = {
+    tipo: "mascota",
+    nombre: nombre.value,
+    especie: especie.value,
+    edad: edad.value
+  };
 
-const auth = firebase.auth();
-const db = firebase.firestore();
+  if(window.AppInventor){
+    window.AppInventor.setWebViewString(JSON.stringify(mascota));
+    document.getElementById("msg").innerText = "✅ Mascota enviada para guardar";
+  }
+}
 
-auth.onAuthStateChanged(user=>{
-  if(!user) return;
+function volver(){
+  window.location.href="home.html";
+}
 
-  // ⚠️ Se asume UNA mascota por ahora
-  db.collection("mascotas")
-    .where("uid","==",user.uid)
-    .limit(1)
-    .get()
-    .then(snap=>{
-      if(!snap.empty){
-        const d = snap.docs[0].data();
-        mNombre.innerText = d.nombre || "—";
-        mEspecie.innerText = d.especie || "—";
-        mEdad.innerText = d.edad || "—";
-      }
-    });
-});
+// Recibir confirmación desde MIT
+function recibir(){
+  try{
+    const data = JSON.parse(window.AppInventor.getWebViewString());
+    if(data.confirmacion){
+      document.getElementById("msg").innerText = "🐶 Mascota guardada correctamente";
+    }
+  }catch(e){}
+}
+setInterval(recibir,500);
 </script>
-
 </body>
 </html>
