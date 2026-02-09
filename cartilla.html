@@ -14,7 +14,7 @@
     .btn { width:100%; padding:12px; border:none; border-radius:12px; background:linear-gradient(90deg,#2563eb,#06b6d4); color:#fff; font-weight:bold; margin-top:12px; cursor:pointer; }
     .back { background:#64748b; }
     ul { padding-left:18px; margin:0; }
-    li { margin-bottom: 4px; }
+    li { margin-bottom: 4px; font-weight: bold; color: #1e293b; }
   </style>
 </head>
 <body>
@@ -24,26 +24,26 @@
 
   <div class="section">
     <h3>👤 Dueño</h3>
-    <p id="dueno">—</p>
+    <p id="dueno">Cargando...</p>
   </div>
 
   <div class="section">
     <h3>🐶 Mascota</h3>
-    <p id="mascota">—</p>
+    <p id="mascota">Cargando...</p>
   </div>
 
   <div class="section">
     <h3>💉 Vacunas</h3>
-    <ul id="vacunas"><li>Sin datos</li></ul>
+    <ul id="vacunas"><li>Sin datos registrados</li></ul>
   </div>
 
   <div class="section">
     <h3>🩺 Historial Médico</h3>
-    <ul id="historial"><li>Sin datos</li></ul>
+    <ul id="historial"><li>Sin datos registrados</li></ul>
   </div>
 
   <button class="btn" onclick="window.print()">📄 Exportar cartilla</button>
-  <button class="btn back" onclick="location.href='home.html'">⬅ Volver</button>
+  <button class="btn back" onclick="window.history.back()">⬅ Volver</button>
 </div>
 
 <script>
@@ -52,33 +52,43 @@ function recibir() {
   
   try {
     const rawData = window.AppInventor.getWebViewString();
-    if (!rawData) return;
+    if (!rawData || rawData === "") return;
     
     const data = JSON.parse(rawData);
 
-    // Cargar Dueño
+    // 1. Cargar Dueño
     if(data.dueno) document.getElementById("dueno").innerText = data.dueno;
 
-    // Cargar Mascota (Maneja si es String o es Objeto)
+    // 2. Cargar Mascota
     if(data.mascota) {
-      document.getElementById("mascota").innerText = (typeof data.mascota === 'object') ? data.mascota.nombre : data.mascota;
+      document.getElementById("mascota").innerText = (typeof data.mascota === 'object') ? (data.mascota.nombre || "Mascota") : data.mascota;
     }
 
-    // Cargar Vacunas
-    if(Array.isArray(data.vacunas)) {
+    // 3. Cargar Vacunas (Corregido para tus bloques de diccionario)
+    if(Array.isArray(data.vacunas) && data.vacunas.length > 0) {
       const ul = document.getElementById("vacunas");
-      ul.innerHTML = data.vacunas.map(v => `<li>${v}</li>`).join('');
+      ul.innerHTML = data.vacunas.map(v => {
+          // Busca el nombre de la vacuna dentro del diccionario que envías
+          let nombre = (typeof v === 'object') ? (v.nombre || v.vacuna || "Vacuna") : v;
+          let fecha = (typeof v === 'object' && v.fecha) ? ` (${v.fecha})` : "";
+          return `<li>${nombre}${fecha}</li>`;
+      }).join('');
     }
 
-    // Cargar Historial
-    if(Array.isArray(data.historial)) {
+    // 4. Cargar Historial (Corregido)
+    if(Array.isArray(data.historial) && data.historial.length > 0) {
       const ul = document.getElementById("historial");
-      ul.innerHTML = data.historial.map(h => `<li>${h}</li>`).join('');
+      ul.innerHTML = data.historial.map(h => {
+          let motivo = (typeof h === 'object') ? (h.motivo || "Consulta") : h;
+          return `<li>${motivo}</li>`;
+      }).join('');
     }
-  } catch(e) { console.log("Esperando JSON válido..."); }
+  } catch(e) { 
+    console.log("Esperando datos..."); 
+  }
 }
 
-// Escucha cambios cada 600ms
+// Escanea datos cada 600ms
 setInterval(recibir, 600);
 </script>
 
