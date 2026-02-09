@@ -1,50 +1,22 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Cartilla Médica - TIKO</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-body{
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:linear-gradient(180deg,#0f172a,#1e3a8a);
-}
-.card{
-  max-width:420px;
-  margin:20px auto;
-  background:#fff;
-  border-radius:16px;
-  padding:16px;
-  box-shadow:0 10px 30px rgba(0,0,0,.4);
-}
-h1{text-align:center;margin:0}
-.section{
-  margin-top:14px;
-  padding:12px;
-  border-radius:12px;
-  background:#f1f5f9;
-}
-.section h3{margin:0 0 6px}
-.btn{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:12px;
-  background:linear-gradient(90deg,#2563eb,#06b6d4);
-  color:#fff;
-  font-weight:bold;
-  margin-top:12px;
-  cursor:pointer;
-}
-.back{
-  background:#64748b;
-}
-ul{padding-left:18px;margin:0}
-</style>
+  <meta charset="UTF-8">
+  <title>Cartilla Médica - TIKO</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { margin:0; font-family:Arial, sans-serif; background:linear-gradient(180deg,#0f172a,#1e3a8a); color: #333; }
+    .card { max-width:420px; margin:20px auto; background:#fff; border-radius:16px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.4); }
+    h1 { text-align:center; margin:0; color: #1e3a8a; }
+    .section { margin-top:14px; padding:12px; border-radius:12px; background:#f1f5f9; border-left: 5px solid #2563eb; }
+    .section h3 { margin:0 0 6px; font-size: 1rem; color: #475569; }
+    .section p { margin: 0; font-weight: bold; color: #1e293b; }
+    .btn { width:100%; padding:12px; border:none; border-radius:12px; background:linear-gradient(90deg,#2563eb,#06b6d4); color:#fff; font-weight:bold; margin-top:12px; cursor:pointer; }
+    .back { background:#64748b; }
+    ul { padding-left:18px; margin:0; }
+    li { margin-bottom: 4px; }
+  </style>
 </head>
-
 <body>
 
 <div class="card" id="cartilla">
@@ -62,62 +34,52 @@ ul{padding-left:18px;margin:0}
 
   <div class="section">
     <h3>💉 Vacunas</h3>
-    <ul id="vacunas"></ul>
+    <ul id="vacunas"><li>Sin datos</li></ul>
   </div>
 
   <div class="section">
     <h3>🩺 Historial Médico</h3>
-    <ul id="historial"></ul>
+    <ul id="historial"><li>Sin datos</li></ul>
   </div>
 
-  <button class="btn" onclick="exportar()">📄 Exportar cartilla</button>
-  <button class="btn back" onclick="volver()">⬅ Volver</button>
+  <button class="btn" onclick="window.print()">📄 Exportar cartilla</button>
+  <button class="btn back" onclick="location.href='home.html'">⬅ Volver</button>
 </div>
 
 <script>
-function exportar(){
-  window.print(); // ✔ EXPORTA BIEN
+function recibir() {
+  if (!window.AppInventor) return;
+  
+  try {
+    const rawData = window.AppInventor.getWebViewString();
+    if (!rawData) return;
+    
+    const data = JSON.parse(rawData);
+
+    // Cargar Dueño
+    if(data.dueno) document.getElementById("dueno").innerText = data.dueno;
+
+    // Cargar Mascota (Maneja si es String o es Objeto)
+    if(data.mascota) {
+      document.getElementById("mascota").innerText = (typeof data.mascota === 'object') ? data.mascota.nombre : data.mascota;
+    }
+
+    // Cargar Vacunas
+    if(Array.isArray(data.vacunas)) {
+      const ul = document.getElementById("vacunas");
+      ul.innerHTML = data.vacunas.map(v => `<li>${v}</li>`).join('');
+    }
+
+    // Cargar Historial
+    if(Array.isArray(data.historial)) {
+      const ul = document.getElementById("historial");
+      ul.innerHTML = data.historial.map(h => `<li>${h}</li>`).join('');
+    }
+  } catch(e) { console.log("Esperando JSON válido..."); }
 }
 
-function volver(){
-  window.location.href="home.html";
-}
-
-// 🔁 Recibir TODO desde MIT
-function recibir(){
-  try{
-    const data = JSON.parse(window.AppInventor.getWebViewString());
-
-    if(data.dueno){
-      document.getElementById("dueno").innerText = data.dueno;
-    }
-
-    if(data.mascota){
-      document.getElementById("mascota").innerText = data.mascota;
-    }
-
-    if(data.vacunas){
-      const ul=document.getElementById("vacunas");
-      ul.innerHTML="";
-      data.vacunas.forEach(v=>{
-        const li=document.createElement("li");
-        li.innerText=v;
-        ul.appendChild(li);
-      });
-    }
-
-    if(data.historial){
-      const ul=document.getElementById("historial");
-      ul.innerHTML="";
-      data.historial.forEach(h=>{
-        const li=document.createElement("li");
-        li.innerText=h;
-        ul.appendChild(li);
-      });
-    }
-  }catch(e){}
-}
-setInterval(recibir,600);
+// Escucha cambios cada 600ms
+setInterval(recibir, 600);
 </script>
 
 </body>
