@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TIKO App - Control Total</title>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        :root { --p: #1e3a8a; --s: #2563eb; --bg: #f8fafc; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; color: #333; }
+        .screen { display: none; padding: 20px; max-width: 450px; margin: auto; animation: fadeIn 0.3s; }
+        .active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2 { color: var(--p); text-align: center; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 10px; background: var(--p); color: white; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+        button:active { transform: scale(0.98); }
+        .btn-sec { background: var(--s); }
+        .btn-back { background: #64748b; margin-top: 20px; }
+        .item { padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; display: flex; justify-content: space-between; }
+        .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="scr-login" class="screen active">
+        <h2>🐾 TIKO LOGIN</h2>
+        <div class="card">
+            <input type="text" id="login-user" placeholder="Nombre de Usuario">
+            <button onclick="login()">Entrar</button>
+        </div>
+    </div>
+
+    <div id="scr-home" class="screen">
+        <h2>¡Hola, <span id="display-name"></span>!</h2>
+        <div class="nav-grid">
+            <button onclick="show('scr-mascota')">🐶 Mascota</button>
+            <button onclick="show('scr-vacunas')">💉 Vacunas</button>
+            <button onclick="show('scr-historial')">🩺 Historial</button>
+            <button class="btn-sec" onclick="renderCartilla()">📋 CARTILLA</button>
+        </div>
+        <button class="btn-back" onclick="show('scr-login')">Cerrar Sesión</button>
+    </div>
+
+    <div id="scr-mascota" class="screen">
+        <h2>Datos de Mascota</h2>
+        <div class="card">
+            <input type="text" id="m-nom" placeholder="Nombre">
+            <input type="text" id="m-esp" placeholder="Especie">
+            <input type="number" id="m-edad" placeholder="Edad">
+            <button onclick="saveMascota()">Guardar Datos</button>
+        </div>
+        <button class="btn-back" onclick="show('scr-home')">Volver</button>
+    </div>
+
+    <div id="scr-vacunas" class="screen">
+        <h2>Registrar Vacuna</h2>
+        <div class="card">
+            <input type="text" id="v-nom" placeholder="Vacuna">
+            <input type="date" id="v-fec">
+            <button onclick="addVacuna()">Añadir</button>
+            <div id="list-v" style="margin-top:15px"></div>
+        </div>
+        <button class="btn-back" onclick="show('scr-home')">Volver</button>
+    </div>
+
+    <div id="scr-historial" class="screen">
+        <h2>Historial Médico</h2>
+        <div class="card">
+            <input type="text" id="h-enf" placeholder="Enfermedad">
+            <input type="date" id="h-fec">
+            <button onclick="addHistorial()">Añadir Registro</button>
+            <div id="list-h" style="margin-top:15px"></div>
+        </div>
+        <button class="btn-back" onclick="show('scr-home')">Volver</button>
+    </div>
+
+    <div id="scr-cartilla" class="screen">
+        <div id="pdf-area" style="background:white; padding:20px; border-radius:10px;">
+            <h1 style="text-align:center; color:#1e3a8a; border-bottom: 3px solid #1e3a8a;">CARTILLA VETERINARIA</h1>
+            <div id="c-mascota" style="margin:20px 0; line-height:1.6"></div>
+            <h3 style="background:#f1f5f9; padding:5px">💉 REGISTRO DE VACUNACIÓN</h3>
+            <div id="c-vacunas"></div>
+            <h3 style="background:#f1f5f9; padding:5px">🩺 HISTORIAL DE ENFERMEDADES</h3>
+            <div id="c-historial"></div>
+        </div>
+        <button onclick="downloadPDF()">📄 DESCARGAR PDF</button>
+        <button class="btn-back" onclick="show('scr-home')">Volver</button>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN FIREBASE (Tus datos)
+        const firebaseConfig = {
+            apiKey: "AIzaSyANX656iqyz6NIo7WX_IvIMnY4w9SQP6sU",
+            authDomain: "tiko-ap.firebaseapp.com",
+            projectId: "tiko-ap",
+            databaseURL: "https://tiko-ap-default-rtdb.firebaseio.com/", // Revisa que esta sea tu URL de DB
+            appId: "1:97455117291:web:1dc88f792d0a74c394bfae"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let currentUser = "";
+
+        function show(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if(id === 'scr-vacunas') loadList('vacunas', 'list-v');
+            if(id === 'scr-historial') loadList('historial', 'list-h');
+        }
+
+        function login() {
+            currentUser = document.getElementById('login-user').value.trim();
+            if(!currentUser) return alert("Escribe un nombre");
+            document.getElementById('display-name').innerText = currentUser;
+            show('scr-home');
+        }
+
+        function saveMascota() {
+            const data = {
+                nombre: document.getElementById('m-nom').value,
+                especie: document.getElementById('m-esp').value,
+                edad: document.getElementById('m-edad').value
+            };
+            db.ref(currentUser + '/mascota').set(data).then(() => alert("¡Guardado!"));
+        }
+
+        function addVacuna() {
+            const v = { nom: document.getElementById('v-nom').value, fec: document.getElementById('v-fec').value };
+            db.ref(currentUser + '/vacunas').push(v).then(() => {
+                document.getElementById('v-nom').value = '';
+                loadList('vacunas', 'list-v');
+            });
+        }
+
+        function addHistorial() {
+            const h = { enf: document.getElementById('h-enf').value, fec: document.getElementById('h-fec').value };
+            db.ref(currentUser + '/historial').push(h).then(() => {
+                document.getElementById('h-enf').value = '';
+                loadList('historial', 'list-h');
+            });
+        }
+
+        function loadList(path, divId) {
+            db.ref(currentUser + '/' + path).once('value', (snap) => {
+                let html = '';
+                snap.forEach(child => {
+                    const d = child.val();
+                    html += `<div class="item"><span>${d.nom || d.enf}</span> <span>${d.fec}</span></div>`;
+                });
+                document.getElementById(divId).innerHTML = html;
+            });
+        }
+
+        function renderCartilla() {
+            db.ref(currentUser).once('value', (snap) => {
+                const data = snap.val() || {};
+                const m = data.mascota || {nombre: '---', especie: '---', edad: '---'};
+                
+                document.getElementById('c-mascota').innerHTML = `
+                    <p><strong>Dueño:</strong> ${currentUser}</p>
+                    <p><strong>Mascota:</strong> ${m.nombre} | <strong>Especie:</strong> ${m.especie} | <strong>Edad:</strong> ${m.edad} años</p>
+                `;
+                
+                let vHtml = '';
+                if(data.vacunas) Object.values(data.vacunas).forEach(v => vHtml += `<div class="item">💉 ${v.nom} <span>${v.fec}</span></div>`);
+                document.getElementById('c-vacunas').innerHTML = vHtml || 'Sin vacunas';
+
+                let hHtml = '';
+                if(data.historial) Object.values(data.historial).forEach(h => hHtml += `<div class="item">🩺 ${h.enf} <span>${h.fec}</span></div>`);
+                document.getElementById('c-historial').innerHTML = hHtml || 'Sin registros';
+                
+                show('scr-cartilla');
+            });
+        }
+
+        function downloadPDF() {
+            const element = document.getElementById('pdf-area');
+            html2pdf().from(element).save(`Cartilla_Tiko_${currentUser}.pdf`);
+        }
+    </script>
+</body>
+</html>
