@@ -1,94 +1,76 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>TIKO - Mascotas</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:linear-gradient(135deg,#22c55e,#38bdf8);
-  min-height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-.card{
-  background:white;
-  width:92%;
-  max-width:420px;
-  border-radius:18px;
-  padding:20px;
-}
-input,button{
-  width:100%;
-  padding:12px;
-  margin-top:10px;
-  border-radius:12px;
-  border:1px solid #ccc;
-}
-button{
-  background:linear-gradient(90deg,#2563eb,#06b6d4);
-  color:white;
-  border:none;
-  font-weight:bold;
-}
-.back{
-  background:#64748b;
-}
-.ok{
-  margin-top:10px;
-  color:green;
-  font-weight:bold;
-}
-</style>
+  <meta charset="UTF-8">
+  <title>TIKO - Mascotas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body{ margin:0; font-family:Arial; background:linear-gradient(135deg,#22c55e,#38bdf8); min-height:100vh; display:flex; justify-content:center; align-items:center; }
+    .card{ background:white; width:92%; max-width:420px; border-radius:18px; padding:20px; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+    h2 { color: #166534; text-align: center; }
+    input,button{ width:100%; padding:12px; margin-top:10px; border-radius:12px; border:1px solid #ccc; box-sizing: border-box; }
+    button{ background:linear-gradient(90deg,#2563eb,#06b6d4); color:white; border:none; font-weight:bold; cursor: pointer; }
+    .back{ background:#64748b; }
+    .ok{ margin-top:10px; color: #15803d; font-weight:bold; text-align: center; height: 20px; }
+  </style>
 </head>
-
 <body>
+
 <div class="card">
   <h2>🐾 Registrar Mascota</h2>
 
   <input id="nombre" placeholder="Nombre de la mascota">
-  <input id="especie" placeholder="Especie">
+  <input id="especie" placeholder="Especie (Ej. Perro)">
   <input id="edad" placeholder="Edad">
 
   <button onclick="guardar()">💾 Guardar</button>
-  <button class="back" onclick="volver()">⬅ Volver</button>
+  <button class="back" onclick="location.href='home.html'">⬅ Volver</button>
 
   <div id="msg" class="ok"></div>
 </div>
 
 <script>
-function guardar(){
+function guardar() {
+  const nombre = document.getElementById("nombre").value;
+  const especie = document.getElementById("especie").value;
+  const edad = document.getElementById("edad").value;
+
+  if(!nombre) {
+    document.getElementById("msg").innerText = "⚠️ Escribe un nombre";
+    return;
+  }
+
   const mascota = {
     tipo: "mascota",
-    nombre: nombre.value,
-    especie: especie.value,
-    edad: edad.value
+    nombre: nombre,
+    especie: especie,
+    edad: edad
   };
 
   if(window.AppInventor){
+    // Convertimos el objeto a texto JSON para enviarlo a la App
     window.AppInventor.setWebViewString(JSON.stringify(mascota));
-    document.getElementById("msg").innerText = "✅ Mascota enviada para guardar";
+    document.getElementById("msg").innerText = "⏳ Guardando en la App...";
+  } else {
+    document.getElementById("msg").innerText = "❌ No conectado a la App";
   }
 }
 
-function volver(){
-  window.location.href="home.html";
+function recibir(){
+  if (!window.AppInventor) return;
+  try {
+    const data = JSON.parse(window.AppInventor.getWebViewString());
+    // Si la App nos envía un JSON con {confirmacion: true}, avisamos al usuario
+    if(data.confirmacion){
+      document.getElementById("msg").innerText = "🐶 ¡Guardado con éxito!";
+      document.getElementById("nombre").value = "";
+      document.getElementById("especie").value = "";
+      document.getElementById("edad").value = "";
+    }
+  } catch(e){}
 }
 
-// Recibir confirmación desde MIT
-function recibir(){
-  try{
-    const data = JSON.parse(window.AppInventor.getWebViewString());
-    if(data.confirmacion){
-      document.getElementById("msg").innerText = "🐶 Mascota guardada correctamente";
-    }
-  }catch(e){}
-}
-setInterval(recibir,500);
+setInterval(recibir, 500);
 </script>
 </body>
 </html>
