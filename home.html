@@ -4,108 +4,50 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TIKO - Home</title>
-
 <style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:linear-gradient(180deg,#0f172a,#1e3a8a);
-  min-height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-
-.card{
-  width:92%;
-  max-width:430px;
-  background:linear-gradient(135deg,#ffffff,#e0f2fe);
-  border-radius:24px;
-  padding:25px;
-  box-shadow:0 15px 40px rgba(0,0,0,.45);
-  text-align:center;
-  position:relative;
-  overflow:hidden;
-}
-
-.card::before{
-  content:"🐶 🐱 🐾 🩺 💉";
-  position:absolute;
-  inset:0;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  font-size:52px;
-  opacity:0.14;
-  pointer-events:none;
-}
-
-.menu{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:15px;
-  margin-top:20px;
-}
-
-.btn{
-  background:linear-gradient(90deg,#2563eb,#06b6d4);
-  color:white;
-  padding:18px;
-  border-radius:18px;
-  font-size:15px;
-  font-weight:bold;
-  cursor:pointer;
-  text-align:center;
-}
-
-.logout{
-  margin-top:20px;
-  background:linear-gradient(90deg,#ef4444,#dc2626);
-}
+  body{ margin:0; font-family:Arial; background:linear-gradient(180deg,#0f172a,#1e3a8a); min-height:100vh; display:flex; justify-content:center; align-items:center; }
+  .card{ width:92%; max-width:430px; background:linear-gradient(135deg,#ffffff,#e0f2fe); border-radius:24px; padding:25px; box-shadow:0 15px 40px rgba(0,0,0,.45); text-align:center; position:relative; overflow:hidden; }
+  .card::before{ content:"🐶 🐱 🐾 🩺 💉"; position:absolute; inset:0; display:flex; justify-content:center; align-items:center; font-size:52px; opacity:0.14; pointer-events:none; }
+  h2{ color: #1e3a8a; position: relative; }
+  #saludo{ color: #2563eb; font-weight: bold; margin-bottom: 10px; position: relative; }
+  .menu{ display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:20px; position: relative; }
+  .btn{ background:linear-gradient(90deg,#2563eb,#06b6d4); color:white; padding:18px; border-radius:18px; font-size:15px; font-weight:bold; cursor:pointer; text-align:center; transition: 0.3s; }
+  .btn:active{ transform: scale(0.95); }
+  .logout{ margin-top:20px; background:linear-gradient(90deg,#ef4444,#dc2626); }
 </style>
 </head>
-
 <body>
 
 <div class="card">
-
   <h2>🏠 Inicio</h2>
+  <div id="saludo">Cargando datos...</div>
 
   <div class="menu">
-
-    <!-- Dueño -->
     <div class="btn" onclick="go('perfil.html')">👤 Dueño</div>
-
-    <!-- Mascotas (CORREGIDO: plural) -->
     <div class="btn" onclick="go('mascotas.html')">🐕 Mascotas</div>
-
-    <!-- Vacunas -->
     <div class="btn" onclick="go('vacunas.html')">💉 Vacunas</div>
-
-    <!-- Historial -->
     <div class="btn" onclick="go('historial.html')">🩺 Historial</div>
-
-    <!-- Cartilla -->
-    <div class="btn" onclick="go('cartilla.html')">📘 Mostrar Cartilla</div>
-
-    <!-- Perfil -->
-    <div class="btn" onclick="go('perfil.html')">⚙ Perfil</div>
-
+    <div class="btn" onclick="go('cartilla.html')" style="grid-column: span 2; background: #1e293b;">📘 Mostrar Cartilla</div>
   </div>
 
   <div class="btn logout" onclick="logout()">🚪 Cerrar sesión</div>
-
 </div>
 
 <script>
-function go(p){
-  window.location.href = p;
-}
+function go(p){ window.location.href = p; }
+function logout(){ window.location.href = "login.html"; }
 
-function logout(){
-  window.location.href = "login.html";
+// Función para mostrar el nombre del dueño en el Home
+function recibir(){
+  if(!window.AppInventor) return;
+  try{
+    const data = JSON.parse(window.AppInventor.getWebViewString());
+    if(data.dueno){
+      document.getElementById("saludo").innerText = "¡Hola, " + data.dueno + "!";
+    }
+  }catch(e){}
 }
+setInterval(recibir, 1000);
 </script>
-
 </body>
 </html>
