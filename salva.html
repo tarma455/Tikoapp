@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>TIKO - salva.html (QR + MIT friendly)</title>
+<title>TIKO - salva.html (PDF mejorado + QR + MIT friendly)</title>
 
 <!-- Firebase compat -->
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
@@ -33,29 +33,44 @@ button{width:100%;padding:12px;border:none;border-radius:8px;background:var(--p)
 .qr-box{background:white;padding:12px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.06)}
 .qr-link{word-break:break-all;color:#0b61d6}
 
-/* ---------- CORRECCIONES PDF: ancho A4 y saltos de página ---------- */
+/* --- Estilos para PDF (no afectan la UI normal) --- */
 #pdf-area {
-  width: 210mm;               /* ancho A4 */
-  box-sizing: border-box;
-  padding: 12mm;              /* márgenes interiores en mm */
   background: white;
+  box-sizing: border-box;
+  padding: 12mm; /* margen interior para la vista normal */
   overflow: visible !important;
+  width: auto; /* ancho en pantalla; se usará CSS de página al generar pdf */
 }
 
-/* evitar que los ítems se rompan a la mitad */
+/* Evitar cortar items dentro de una página */
 .item {
   break-inside: avoid;
   page-break-inside: avoid;
   -webkit-column-break-inside: avoid;
 }
 
-/* clase que fuerza salto de página */
-.page-break {
-  display: block;
+/* Páginas que generaremos dinámicamente */
+.pdf-page {
+  width: 210mm;        /* A4 */
+  height: 297mm;       /* A4 */
+  box-sizing: border-box;
+  background: white;
+  overflow: hidden;
+  padding: 12mm;       /* margen interior de página */
   page-break-after: always;
-  break-after: page;
-  margin: 0;
-  padding: 0;
+}
+
+.pdf-page .page-content {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.pdf-page .item {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  -webkit-column-break-inside: avoid;
 }
 </style>
 </head>
@@ -121,7 +136,7 @@ button{width:100%;padding:12px;border:none;border-radius:8px;background:var(--p)
   </div>
 </div>
 
-<!-- CARTILLA -->
+<!-- CARTILLA (contenido que se convertirá a PDF) -->
 <div id="scr-cartilla" class="screen">
   <div class="card" id="pdf-area">
     <h2>CARTILLA TIKO</h2>
@@ -270,58 +285,105 @@ function renderCartilla(){
     }).catch(err=> alert('Error cargando cartilla: ' + err.message));
 }
 
-/* ================== PDF (mejor paginado para evitar cortes) ================== */
+/* ================== PDF (paginación por altura real) ================== */
 function downloadPDF(){
-  const element = document.getElementById('pdf-area');
-  if(!element){ alert('No hay contenido'); return; }
+  const source = document.getElementById('pdf-area');
+  if (!source) { alert('No hay contenido para generar'); return; }
 
-  // Opciones
   const opt = {
-    margin: 8,
-    filename: `TIKO_${currentUser||'user'}.pdf`,
+    margin: 0,
+    filename: `TIKO_${currentUser || 'user'}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true, allowTaint: false },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak: { mode: ['css', 'legacy'] }
   };
 
-  // 1) clonamos el área para no afectar UI visible
-  const clone = element.cloneNode(true);
+  // 1) clonamos el área
+  const cloneRoot = source.cloneNode(true);
 
-  // 2) insertar saltos de página cada N items si es necesario
-  const ITEMS_PER_PAGE = 12; // ajusta si ves que aún se corta (prueba 8-16)
-  const items = clone.querySelectorAll('.item');
-  if (items.length > ITEMS_PER_PAGE) {
-    for (let i = ITEMS_PER_PAGE; i < items.length; i += ITEMS_PER_PAGE) {
-      const br = document.createElement('div');
-      br.className = 'page-break';
-      // insertamos el salto antes del item i
-      items[i].parentNode.insertBefore(br, items[i]);
-    }
-  }
-
-  // 3) envolver en contenedor temporal
+  // 2) creamos wrapper y lo añadimos al DOM OFFSCREEN (para mediciones)
   const wrapper = document.createElement('div');
-  wrapper.style.background = '#fff';
-  wrapper.style.padding = '0';
-  wrapper.appendChild(clone);
+  wrapper.style.position = 'fixed';
+  wrapper.style.left = '-10000px';
+  wrapper.style.top = '0';
+  wrapper.style.width = '210mm'; // establecer ancho A4 para medir
+  wrapper.style.boxSizing = 'border-box';
   document.body.appendChild(wrapper);
 
-  // 4) generar PDF con html2pdf a partir del wrapper
-  html2pdf().set(opt).from(wrapper).toPdf().get('pdf').then(function (pdf) {
-    // Si estamos dentro de MIT App Inventor, enviamos la DataURI
+  // añadir el cloneRoot al wrapper (así los elementos tienen estilos computados)
+  wrapper.appendChild(cloneRoot);
+
+  // helper para crear página
+  function newPage() {
+    const p = document.createElement('div');
+    p.className = 'pdf-page';
+    const content = document.createElement('div');
+    content.className = 'page-content';
+    p.appendChild(content);
+    wrapper.appendChild(p);
+    return { page: p, content: content };
+  }
+
+  // crear la primera página
+  let pageObj = newPage();
+
+  // 3) Poner encabezado (h2 y #c-mascota) en la primera página
+  const titleEl = cloneRoot.querySelector('h2');
+  const mascotaEl = cloneRoot.querySelector('#c-mascota');
+  if (titleEl) pageObj.content.appendChild(titleEl.cloneNode(true));
+  if (mascotaEl) pageObj.content.appendChild(mascotaEl.cloneNode(true));
+
+  // 4) Procesar secciones en orden para mantener encabezados (vacunas y historial)
+  const sectionIds = ['c-vacunas', 'c-historial'];
+  sectionIds.forEach(secId => {
+    const sec = cloneRoot.querySelector('#' + secId);
+    if (!sec) return;
+
+    // obtener encabezado anterior al section (generalmente un h3)
+    let header = sec.previousElementSibling && (sec.previousElementSibling.tagName || '').toLowerCase().startsWith('h') ? sec.previousElementSibling : null;
+
+    // si hay header, clónalo y añádelo a la página actual (y a páginas nuevas si se crean)
+    const headerCloneForPage = header ? header.cloneNode(true) : null;
+    if (headerCloneForPage) pageObj.content.appendChild(headerCloneForPage.cloneNode(true));
+
+    // tomar todos los items dentro de esta sección (lista estática)
+    const items = Array.from(sec.querySelectorAll('.item'));
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i].cloneNode(true); // clonar item (trabajamos con clones)
+      pageObj.content.appendChild(item);
+
+      // forzamos reflow y medimos overflow
+      const overflow = pageObj.content.scrollHeight > pageObj.page.clientHeight;
+      if (overflow) {
+        // si se desborda, lo removemos y pasamos a nueva página
+        pageObj.content.removeChild(item);
+        pageObj = newPage();
+        // si hay header para la sección, añadirlo en la nueva página
+        if (headerCloneForPage) pageObj.content.appendChild(headerCloneForPage.cloneNode(true));
+        // añadir el item en la nueva página
+        pageObj.content.appendChild(item);
+
+        // edge case: si el item por sí solo es más alto que la página, lo dejamos (se desbordará)
+        // alternativa más avanzada: reducir fuente o dividir el item (no implementado aquí)
+      }
+    }
+  });
+
+  // 5) Generar PDF desde el wrapper (que contiene .pdf-page)
+  html2pdf().set(opt).from(wrapper).toPdf().get('pdf').then(function(pdf) {
     if (window.AppInventor && typeof AppInventor.setWebViewString === 'function') {
-      const dataUri = pdf.output('datauristring'); // data:application/pdf;base64,...
+      const dataUri = pdf.output('datauristring');
       AppInventor.setWebViewString(dataUri);
       alert('PDF enviado a la app (WebViewString). Guarda el archivo desde MIT App Inventor.');
     } else {
-      // fallback navegador: descarga directa
       pdf.save(opt.filename);
     }
-  }).catch(function(err){
+  }).catch(function(err) {
     alert('Error generando PDF: ' + (err && err.message ? err.message : err));
-  }).finally(function(){
-    // limpiamos el wrapper temporal
+  }).finally(function() {
+    // limpieza
     wrapper.remove();
   });
 }
@@ -415,3 +477,4 @@ window.openQRInNewTab = openQRInNewTab;
 </script>
 </body>
 </html>
+
