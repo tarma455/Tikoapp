@@ -168,15 +168,24 @@
             });
         }
 
-        function downloadPDF() {
-            const element = document.getElementById('pdf-area');
-            const opt = {
-                margin: 10,
-                filename: `TIKO_${currentUser}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
+       function downloadPDF() {
+    const element = document.getElementById('pdf-area');
+    const opt = {
+        margin: 10,
+        filename: `TIKO_${currentUser}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // Generamos el PDF y lo abrimos en una nueva pestaña/ventana
+    // Esto es lo que mejor funciona dentro de Visores Web de Apps
+    html2pdf().set(opt).from(element).toPdf().get('pdf').then(function (pdf) {
+        var blob = pdf.output('blob');
+        var url = URL.createObjectURL(blob);
+        window.open(url, '_blank'); // Esto intenta forzar al sistema a manejar el archivo
+    });
+}
 
             // TRUCO PARA APPS: En lugar de guardar directo, intentamos abrir el blob
             html2pdf().set(opt).from(element).toPdf().get('pdf').then(function (pdf) {
@@ -189,3 +198,4 @@
     </script>
 </body>
 </html>
+
