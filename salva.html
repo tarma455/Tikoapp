@@ -286,6 +286,7 @@ function renderCartilla(){
 }
 
 /* ================== PDF (paginación por altura real) ================== */
+<script>
 function downloadPDF(){
   const source = document.getElementById('pdf-area');
   if (!source) { alert('No hay contenido para generar'); return; }
@@ -299,93 +300,33 @@ function downloadPDF(){
     pagebreak: { mode: ['css', 'legacy'] }
   };
 
-  // 1) clonamos el área
+  /* === CLONADO ORIGINAL (NO SE TOCA) === */
   const cloneRoot = source.cloneNode(true);
 
-  // 2) creamos wrapper y lo añadimos al DOM OFFSCREEN (para mediciones)
   const wrapper = document.createElement('div');
   wrapper.style.position = 'fixed';
   wrapper.style.left = '-10000px';
   wrapper.style.top = '0';
-  wrapper.style.width = '210mm'; // establecer ancho A4 para medir
+  wrapper.style.width = '210mm';
   wrapper.style.boxSizing = 'border-box';
   document.body.appendChild(wrapper);
-
-  // añadir el cloneRoot al wrapper (así los elementos tienen estilos computados)
   wrapper.appendChild(cloneRoot);
 
-  // helper para crear página
-  function newPage() {
-    const p = document.createElement('div');
-    p.className = 'pdf-page';
-    const content = document.createElement('div');
-    content.className = 'page-content';
-    p.appendChild(content);
-    wrapper.appendChild(p);
-    return { page: p, content: content };
-  }
-
-  // crear la primera página
-  let pageObj = newPage();
-
-  // 3) Poner encabezado (h2 y #c-mascota) en la primera página
-  const titleEl = cloneRoot.querySelector('h2');
-  const mascotaEl = cloneRoot.querySelector('#c-mascota');
-  if (titleEl) pageObj.content.appendChild(titleEl.cloneNode(true));
-  if (mascotaEl) pageObj.content.appendChild(mascotaEl.cloneNode(true));
-
-  // 4) Procesar secciones en orden para mantener encabezados (vacunas y historial)
-  const sectionIds = ['c-vacunas', 'c-historial'];
-  sectionIds.forEach(secId => {
-    const sec = cloneRoot.querySelector('#' + secId);
-    if (!sec) return;
-
-    // obtener encabezado anterior al section (generalmente un h3)
-    let header = sec.previousElementSibling && (sec.previousElementSibling.tagName || '').toLowerCase().startsWith('h') ? sec.previousElementSibling : null;
-
-    // si hay header, clónalo y añádelo a la página actual (y a páginas nuevas si se crean)
-    const headerCloneForPage = header ? header.cloneNode(true) : null;
-    if (headerCloneForPage) pageObj.content.appendChild(headerCloneForPage.cloneNode(true));
-
-    // tomar todos los items dentro de esta sección (lista estática)
-    const items = Array.from(sec.querySelectorAll('.item'));
-
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i].cloneNode(true); // clonar item (trabajamos con clones)
-      pageObj.content.appendChild(item);
-
-      // forzamos reflow y medimos overflow
-      const overflow = pageObj.content.scrollHeight > pageObj.page.clientHeight;
-      if (overflow) {
-        // si se desborda, lo removemos y pasamos a nueva página
-        pageObj.content.removeChild(item);
-        pageObj = newPage();
-        // si hay header para la sección, añadirlo en la nueva página
-        if (headerCloneForPage) pageObj.content.appendChild(headerCloneForPage.cloneNode(true));
-        // añadir el item en la nueva página
-        pageObj.content.appendChild(item);
-
-        // edge case: si el item por sí solo es más alto que la página, lo dejamos (se desbordará)
-        // alternativa más avanzada: reducir fuente o dividir el item (no implementado aquí)
+  /* === GENERACIÓN PDF (FIX REAL) === */
+  html2pdf(wrapper, opt)
+    .then(pdf => {
+      if (window.AppInventor && typeof AppInventor.setWebViewString === 'function') {
+        const dataUri = pdf.output('datauristring');
+        AppInventor.setWebViewString(dataUri);
+        alert('PDF enviado a la app (WebViewString).');
       }
-    }
-  });
-
-  // 5) Generar PDF desde el wrapper (que contiene .pdf-page)
-  html2pdf().set(opt).from(wrapper).toPdf().get('pdf').then(function(pdf) {
-    if (window.AppInventor && typeof AppInventor.setWebViewString === 'function') {
-      const dataUri = pdf.output('datauristring');
-      AppInventor.setWebViewString(dataUri);
-      alert('PDF enviado a la app (WebViewString). Guarda el archivo desde MIT App Inventor.');
-    } else {
-      pdf.save(opt.filename);
-    }
-  }).catch(function(err) {
-    alert('Error generando PDF: ' + (err && err.message ? err.message : err));
-  }).finally(function() {
-    // limpieza
-    wrapper.remove();
-  });
+    })
+    .catch(err => {
+      alert('Error generando PDF: ' + err.message);
+    })
+    .finally(() => {
+      wrapper.remove();
+    });
 }
 
 /* ================== QR functions ================== */
@@ -477,4 +418,5 @@ window.openQRInNewTab = openQRInNewTab;
 </script>
 </body>
 </html>
+
 
