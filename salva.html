@@ -10,7 +10,7 @@
     
     <style>
         :root { --p: #1e3a8a; --s: #2563eb; --bg: #f8fafc; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); margin: 0; padding: 0; color: #333; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; }
         .screen { display: none; padding: 20px; max-width: 450px; margin: auto; animation: fadeIn 0.3s; }
         .active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -21,13 +21,9 @@
         .btn-sec { background: var(--s); }
         .btn-back { background: #94a3b8; margin-top: 15px; }
         .item { padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 14px; background: #fff; }
-        
-        /* Estilos específicos para la Cartilla y PDF */
         #pdf-area { background: white; padding: 15px; border-radius: 10px; }
         .pdf-header { text-align: center; border-bottom: 3px solid var(--p); padding-bottom: 10px; margin-bottom: 15px; }
         .pdf-section { background: #f1f5f9; padding: 8px; font-weight: bold; color: var(--p); margin-top: 15px; border-radius: 4px; }
-        
-        /* Ocultar elementos en modo QR */
         .solo-lectura .btn-back, .solo-lectura #btn-descarga, .solo-lectura #nav-main { display: none !important; }
     </style>
 </head>
@@ -91,6 +87,100 @@
                 <h1 style="margin:0; font-size: 22px; color: #1e3a8a;">CARTILLA DE SALUD TIKO</h1>
             </div>
             <div id="c-mascota" style="margin-bottom: 15px; line-height: 1.6;"></div>
-            
             <div class="pdf-section">💉 ESQUEMA DE VACUNACIÓN</div>
             <div id="c-vacunas"></div>
+            <div class="pdf-section">🩺 HISTORIAL MÉDICO</div>
+            <div id="c-historial"></div>
+        </div>
+        <button id="btn-descarga" class="btn-sec" onclick="downloadPDF()">📄 DESCARGAR PDF</button>
+        <button class="btn-back" onclick="show('scr-home')">VOLVER AL MENÚ</button>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN CORREGIDA CON TU URL
+        const firebaseConfig = {
+            apiKey: "AIzaSyANX656iqyz6NIo7WX_IvIMnY4w9SQP6sU",
+            authDomain: "tiko-ap.firebaseapp.com",
+            projectId: "tiko-ap",
+            databaseURL: "https://tiko-ap-default-rtdb.firebaseio.com/", 
+            appId: "1:97455117291:web:1dc88f792d0a74c394bfae"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let currentUser = "";
+
+        window.onload = function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('modo') === 'ver' && params.get('user')) {
+                currentUser = params.get('user');
+                document.getElementById('main-body').classList.add('solo-lectura');
+                renderCartilla();
+            }
+        };
+
+        function show(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if(id === 'scr-vacunas') loadList('vacunas', 'list-v');
+            if(id === 'scr-historial') loadList('historial', 'list-h');
+        }
+
+        function login() {
+            const userIn = document.getElementById('login-user').value.trim();
+            if(userIn) {
+                currentUser = userIn.replace(/\s+/g, '_');
+                show('scr-home');
+            } else {
+                alert("Por favor, ingresa un nombre de usuario.");
+            }
+        }
+
+        function saveMascota() {
+            const data = { nombre: document.getElementById('m-nom').value, especie: document.getElementById('m-esp').value, edad: document.getElementById('m-edad').value };
+            db.ref(currentUser + '/mascota').set(data).then(() => alert("¡Datos Guardados!"));
+        }
+
+        function addVacuna() {
+            const v = { nom: document.getElementById('v-nom').value, fec: document.getElementById('v-fec').value };
+            if(!v.nom || !v.fec) return alert("Faltan datos");
+            db.ref(currentUser + '/vacunas').push(v).then(() => { document.getElementById('v-nom').value = ''; loadList('vacunas', 'list-v'); });
+        }
+
+        function addHistorial() {
+            const h = { enf: document.getElementById('h-enf').value, fec: document.getElementById('h-fec').value };
+            if(!h.enf || !h.fec) return alert("Faltan datos");
+            db.ref(currentUser + '/historial').push(h).then(() => { document.getElementById('h-enf').value = ''; loadList('historial', 'list-h'); });
+        }
+
+        function loadList(path, divId) {
+            db.ref(currentUser + '/' + path).once('value', (snap) => {
+                let h = '';
+                snap.forEach(c => { const d = c.val(); h += `<div class="item"><span>${d.nom || d.enf}</span> <span>${d.fec}</span></div>`; });
+                document.getElementById(divId).innerHTML = h || '<p style="font-size:12px;color:gray">Sin datos</p>';
+            });
+        }
+
+        function renderCartilla() {
+            db.ref(currentUser).once('value', (snap) => {
+                const data = snap.val() || {};
+                const m = data.mascota || {nombre: '---', especie: '---', edad: '---'};
+                document.getElementById('c-mascota').innerHTML = `<p><strong>Dueño:</strong> ${currentUser.replace('_',' ')}</p><p><strong>Mascota:</strong> ${m.nombre} | ${m.especie} | ${m.edad} años</p>`;
+                let vH = ''; if(data.vacunas) Object.values(data.vacunas).forEach(v => vH += `<div class="item">💉 ${v.nom} <span>${v.fec}</span></div>`);
+                document.getElementById('c-vacunas').innerHTML = vH || 'No hay vacunas';
+                let hH = ''; if(data.historial) Object.values(data.historial).forEach(h => hH += `<div class="item">🩺 ${h.enf} <span>${h.fec}</span></div>`);
+                document.getElementById('c-historial').innerHTML = hH || 'Sin historial';
+                show('scr-cartilla');
+            });
+        }
+
+        function downloadPDF() {
+            const element = document.getElementById('pdf-area');
+            const opt = { margin: 10, filename: `TIKO_${currentUser}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+            html2pdf().set(opt).from(element).toPdf().get('pdf').then(function (pdf) {
+                const url = URL.createObjectURL(pdf.output('blob'));
+                window.open(url, '_blank');
+            }).catch(() => { html2pdf().set(opt).from(element).save(); });
+        }
+    </script>
+</body>
+</html>
