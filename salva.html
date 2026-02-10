@@ -3,101 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TIKO - Salud Animal</title>
+    <title>TIKO App</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
-        :root { --p: #1e3a8a; --s: #2563eb; --bg: #f8fafc; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; }
-        .screen { display: none; padding: 20px; max-width: 450px; margin: auto; animation: fadeIn 0.3s; }
+        body { font-family: sans-serif; background: #f0f4f8; margin: 0; padding: 20px; text-align: center; }
+        .screen { display: none; max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h2 { color: var(--p); text-align: center; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; padding: 14px; border: none; border-radius: 10px; background: var(--p); color: white; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
-        .btn-sec { background: var(--s); }
-        .btn-back { background: #94a3b8; margin-top: 15px; }
-        .item { padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 14px; background: #fff; }
-        #pdf-area { background: white; padding: 15px; border-radius: 10px; }
-        .pdf-header { text-align: center; border-bottom: 3px solid var(--p); padding-bottom: 10px; margin-bottom: 15px; }
-        .pdf-section { background: #f1f5f9; padding: 8px; font-weight: bold; color: var(--p); margin-top: 15px; border-radius: 4px; }
-        .solo-lectura .btn-back, .solo-lectura #btn-descarga, .solo-lectura #nav-main { display: none !important; }
+        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+        button { width: 95%; padding: 12px; background: #1e3a8a; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .item { border-bottom: 1px solid #eee; padding: 10px; display: flex; justify-content: space-between; font-size: 14px; }
+        h2 { color: #1e3a8a; }
     </style>
 </head>
-<body id="main-body">
+<body>
 
     <div id="scr-login" class="screen active">
         <h2>🐾 TIKO LOGIN</h2>
-        <div class="card">
-            <input type="text" id="login-user" placeholder="Nombre de Usuario">
-            <button onclick="login()">INGRESAR</button>
-        </div>
+        <input type="text" id="login-user" placeholder="Tu Nombre">
+        <button onclick="login()">INGRESAR</button>
     </div>
 
     <div id="scr-home" class="screen">
         <h2>Panel Principal</h2>
-        <div id="nav-main" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <button onclick="show('scr-mascota')">🐶 MASCOTA</button>
-            <button onclick="show('scr-vacunas')">💉 VACUNAS</button>
-            <button onclick="show('scr-historial')">🩺 HISTORIAL</button>
-            <button class="btn-sec" onclick="renderCartilla()">📋 CARTILLA</button>
-        </div>
-        <button class="btn-back" onclick="location.reload()">CERRAR SESIÓN</button>
+        <p>Hola, <span id="display-name"></span></p>
+        <button onclick="show('scr-mascota')">🐶 MASCOTA</button>
+        <button onclick="show('scr-vacunas')">💉 VACUNAS</button>
+        <button onclick="show('scr-historial')">🩺 HISTORIAL</button>
+        <button style="background:#2563eb" onclick="renderCartilla()">📋 CARTILLA</button>
+        <button style="background:#94a3b8" onclick="location.reload()">SALIR</button>
     </div>
 
     <div id="scr-mascota" class="screen">
         <h2>Datos Mascota</h2>
-        <div class="card">
-            <input type="text" id="m-nom" placeholder="Nombre de mascota">
-            <input type="text" id="m-esp" placeholder="Especie / Raza">
-            <input type="number" id="m-edad" placeholder="Edad">
-            <button onclick="saveMascota()">GUARDAR DATOS</button>
-        </div>
-        <button class="btn-back" onclick="show('scr-home')">VOLVER</button>
+        <input type="text" id="m-nom" placeholder="Nombre Mascota">
+        <input type="text" id="m-esp" placeholder="Especie">
+        <input type="number" id="m-edad" placeholder="Edad">
+        <button onclick="saveMascota()">GUARDAR</button>
+        <button style="background:#94a3b8" onclick="show('scr-home')">VOLVER</button>
     </div>
 
     <div id="scr-vacunas" class="screen">
         <h2>Vacunas</h2>
-        <div class="card">
-            <input type="text" id="v-nom" placeholder="Nombre de vacuna">
-            <input type="date" id="v-fec">
-            <button onclick="addVacuna()">REGISTRAR VACUNA</button>
-            <div id="list-v" style="margin-top:15px"></div>
-        </div>
-        <button class="btn-back" onclick="show('scr-home')">VOLVER</button>
+        <input type="text" id="v-nom" placeholder="Nombre Vacuna">
+        <input type="date" id="v-fec">
+        <button onclick="addVacuna()">AGREGAR</button>
+        <div id="list-v"></div>
+        <button style="background:#94a3b8" onclick="show('scr-home')">VOLVER</button>
     </div>
 
     <div id="scr-historial" class="screen">
-        <h2>Enfermedades</h2>
-        <div class="card">
-            <input type="text" id="h-enf" placeholder="Diagnóstico">
-            <input type="date" id="h-fec">
-            <button onclick="addHistorial()">AÑADIR REGISTRO</button>
-            <div id="list-h" style="margin-top:15px"></div>
-        </div>
-        <button class="btn-back" onclick="show('scr-home')">VOLVER</button>
+        <h2>Historial</h2>
+        <input type="text" id="h-enf" placeholder="Enfermedad">
+        <input type="date" id="h-fec">
+        <button onclick="addHistorial()">AGREGAR</button>
+        <div id="list-h"></div>
+        <button style="background:#94a3b8" onclick="show('scr-home')">VOLVER</button>
     </div>
 
     <div id="scr-cartilla" class="screen">
-        <div id="pdf-area">
-            <div class="pdf-header">
-                <h1 style="margin:0; font-size: 22px; color: #1e3a8a;">CARTILLA DE SALUD TIKO</h1>
-            </div>
-            <div id="c-mascota" style="margin-bottom: 15px; line-height: 1.6;"></div>
-            <div class="pdf-section">💉 ESQUEMA DE VACUNACIÓN</div>
+        <div id="pdf-area" style="text-align:left">
+            <h2 style="text-align:center; border-bottom:2px solid #1e3a8a">CARTILLA TIKO</h2>
+            <div id="c-mascota"></div>
+            <hr>
+            <strong>VACUNAS:</strong>
             <div id="c-vacunas"></div>
-            <div class="pdf-section">🩺 HISTORIAL MÉDICO</div>
+            <hr>
+            <strong>HISTORIAL:</strong>
             <div id="c-historial"></div>
         </div>
-        <button id="btn-descarga" class="btn-sec" onclick="downloadPDF()">📄 DESCARGAR PDF</button>
-        <button class="btn-back" onclick="show('scr-home')">VOLVER AL MENÚ</button>
+        <button style="background:#10b981" onclick="downloadPDF()">📄 DESCARGAR PDF</button>
+        <button style="background:#94a3b8" onclick="show('scr-home')">VOLVER</button>
     </div>
 
     <script>
-        // CONFIGURACIÓN CORREGIDA CON TU URL
         const firebaseConfig = {
             apiKey: "AIzaSyANX656iqyz6NIo7WX_IvIMnY4w9SQP6sU",
             authDomain: "tiko-ap.firebaseapp.com",
@@ -109,54 +90,57 @@
         const db = firebase.database();
         let currentUser = "";
 
-        window.onload = function() {
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('modo') === 'ver' && params.get('user')) {
-                currentUser = params.get('user');
-                document.getElementById('main-body').classList.add('solo-lectura');
-                renderCartilla();
-            }
-        };
-
         function show(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+            document.getElementById(id).style.display = 'block';
             if(id === 'scr-vacunas') loadList('vacunas', 'list-v');
             if(id === 'scr-historial') loadList('historial', 'list-h');
         }
 
         function login() {
-            const userIn = document.getElementById('login-user').value.trim();
-            if(userIn) {
-                currentUser = userIn.replace(/\s+/g, '_');
+            const userVal = document.getElementById('login-user').value.trim();
+            if(userVal !== "") {
+                currentUser = userVal.replace(/\s+/g, '_');
+                document.getElementById('display-name').innerText = userVal;
                 show('scr-home');
             } else {
-                alert("Por favor, ingresa un nombre de usuario.");
+                alert("Escribe tu nombre");
             }
         }
 
         function saveMascota() {
-            const data = { nombre: document.getElementById('m-nom').value, especie: document.getElementById('m-esp').value, edad: document.getElementById('m-edad').value };
-            db.ref(currentUser + '/mascota').set(data).then(() => alert("¡Datos Guardados!"));
+            const data = { 
+                nombre: document.getElementById('m-nom').value, 
+                especie: document.getElementById('m-esp').value, 
+                edad: document.getElementById('m-edad').value 
+            };
+            db.ref(currentUser + '/mascota').set(data).then(() => alert("Guardado"));
         }
 
         function addVacuna() {
             const v = { nom: document.getElementById('v-nom').value, fec: document.getElementById('v-fec').value };
-            if(!v.nom || !v.fec) return alert("Faltan datos");
-            db.ref(currentUser + '/vacunas').push(v).then(() => { document.getElementById('v-nom').value = ''; loadList('vacunas', 'list-v'); });
+            db.ref(currentUser + '/vacunas').push(v).then(() => { 
+                document.getElementById('v-nom').value = ''; 
+                loadList('vacunas', 'list-v'); 
+            });
         }
 
         function addHistorial() {
             const h = { enf: document.getElementById('h-enf').value, fec: document.getElementById('h-fec').value };
-            if(!h.enf || !h.fec) return alert("Faltan datos");
-            db.ref(currentUser + '/historial').push(h).then(() => { document.getElementById('h-enf').value = ''; loadList('historial', 'list-h'); });
+            db.ref(currentUser + '/historial').push(h).then(() => { 
+                document.getElementById('h-enf').value = ''; 
+                loadList('historial', 'list-h'); 
+            });
         }
 
         function loadList(path, divId) {
             db.ref(currentUser + '/' + path).once('value', (snap) => {
-                let h = '';
-                snap.forEach(c => { const d = c.val(); h += `<div class="item"><span>${d.nom || d.enf}</span> <span>${d.fec}</span></div>`; });
-                document.getElementById(divId).innerHTML = h || '<p style="font-size:12px;color:gray">Sin datos</p>';
+                let html = '';
+                snap.forEach(c => { 
+                    const d = c.val(); 
+                    html += `<div class="item"><span>${d.nom || d.enf}</span> <span>${d.fec}</span></div>`; 
+                });
+                document.getElementById(divId).innerHTML = html;
             });
         }
 
@@ -164,22 +148,20 @@
             db.ref(currentUser).once('value', (snap) => {
                 const data = snap.val() || {};
                 const m = data.mascota || {nombre: '---', especie: '---', edad: '---'};
-                document.getElementById('c-mascota').innerHTML = `<p><strong>Dueño:</strong> ${currentUser.replace('_',' ')}</p><p><strong>Mascota:</strong> ${m.nombre} | ${m.especie} | ${m.edad} años</p>`;
-                let vH = ''; if(data.vacunas) Object.values(data.vacunas).forEach(v => vH += `<div class="item">💉 ${v.nom} <span>${v.fec}</span></div>`);
-                document.getElementById('c-vacunas').innerHTML = vH || 'No hay vacunas';
-                let hH = ''; if(data.historial) Object.values(data.historial).forEach(h => hH += `<div class="item">🩺 ${h.enf} <span>${h.fec}</span></div>`);
-                document.getElementById('c-historial').innerHTML = hH || 'Sin historial';
+                document.getElementById('c-mascota').innerHTML = `<p>Dueño: ${currentUser.replace('_',' ')}</p><p>Mascota: ${m.nombre} (${m.especie})</p>`;
+                
+                let vH = ''; if(data.vacunas) Object.values(data.vacunas).forEach(v => vH += `<div class="item">💉 ${v.nom} - ${v.fec}</div>`);
+                document.getElementById('c-vacunas').innerHTML = vH;
+
+                let hH = ''; if(data.historial) Object.values(data.historial).forEach(h => hH += `<div class="item">🩺 ${h.enf} - ${h.fec}</div>`);
+                document.getElementById('c-historial').innerHTML = hH;
                 show('scr-cartilla');
             });
         }
 
         function downloadPDF() {
             const element = document.getElementById('pdf-area');
-            const opt = { margin: 10, filename: `TIKO_${currentUser}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-            html2pdf().set(opt).from(element).toPdf().get('pdf').then(function (pdf) {
-                const url = URL.createObjectURL(pdf.output('blob'));
-                window.open(url, '_blank');
-            }).catch(() => { html2pdf().set(opt).from(element).save(); });
+            html2pdf().from(element).save(`TIKO_${currentUser}.pdf`);
         }
     </script>
 </body>
