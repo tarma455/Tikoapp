@@ -32,6 +32,31 @@ button{width:100%;padding:12px;border:none;border-radius:8px;background:var(--p)
 .qr-wrap{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .qr-box{background:white;padding:12px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.06)}
 .qr-link{word-break:break-all;color:#0b61d6}
+
+/* ---------- CORRECCIONES PDF: ancho A4 y saltos de página ---------- */
+#pdf-area {
+  width: 210mm;               /* ancho A4 */
+  box-sizing: border-box;
+  padding: 12mm;              /* márgenes interiores en mm */
+  background: white;
+  overflow: visible !important;
+}
+
+/* evitar que los ítems se rompan a la mitad */
+.item {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+}
+
+/* clase que fuerza salto de página */
+.page-break {
+  display: block;
+  page-break-after: always;
+  break-after: page;
+  margin: 0;
+  padding: 0;
+}
 </style>
 </head>
 <body id="main-body">
@@ -245,38 +270,60 @@ function renderCartilla(){
     }).catch(err=> alert('Error cargando cartilla: ' + err.message));
 }
 
-/* ================== PDF (navegador o MIT) ================== */
+/* ================== PDF (mejor paginado para evitar cortes) ================== */
 function downloadPDF(){
   const element = document.getElementById('pdf-area');
   if(!element){ alert('No hay contenido'); return; }
 
+  // Opciones
   const opt = {
     margin: 8,
     filename: `TIKO_${currentUser||'user'}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    html2canvas: { scale: 2, useCORS: true, allowTaint: false },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['css', 'legacy'] }
   };
 
-  html2pdf().set(opt).from(element).toPdf().output('datauristring')
-    .then(function (dataUriString) {
-      if (window.AppInventor && typeof AppInventor.setWebViewString === 'function') {
-        // Envía la DataURI completa a MIT App Inventor para que la app la guarde
-        AppInventor.setWebViewString(dataUriString);
-        alert('PDF enviado a la app (WebViewString). Guarda el archivo desde MIT App Inventor.');
-      } else {
-        // Fallback: descargar en navegador
-        const a = document.createElement('a');
-        a.href = dataUriString;
-        a.download = opt.filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      }
-    })
-    .catch(function(err){
-      alert('Error generando PDF: ' + (err && err.message ? err.message : err));
-    });
+  // 1) clonamos el área para no afectar UI visible
+  const clone = element.cloneNode(true);
+
+  // 2) insertar saltos de página cada N items si es necesario
+  const ITEMS_PER_PAGE = 12; // ajusta si ves que aún se corta (prueba 8-16)
+  const items = clone.querySelectorAll('.item');
+  if (items.length > ITEMS_PER_PAGE) {
+    for (let i = ITEMS_PER_PAGE; i < items.length; i += ITEMS_PER_PAGE) {
+      const br = document.createElement('div');
+      br.className = 'page-break';
+      // insertamos el salto antes del item i
+      items[i].parentNode.insertBefore(br, items[i]);
+    }
+  }
+
+  // 3) envolver en contenedor temporal
+  const wrapper = document.createElement('div');
+  wrapper.style.background = '#fff';
+  wrapper.style.padding = '0';
+  wrapper.appendChild(clone);
+  document.body.appendChild(wrapper);
+
+  // 4) generar PDF con html2pdf a partir del wrapper
+  html2pdf().set(opt).from(wrapper).toPdf().get('pdf').then(function (pdf) {
+    // Si estamos dentro de MIT App Inventor, enviamos la DataURI
+    if (window.AppInventor && typeof AppInventor.setWebViewString === 'function') {
+      const dataUri = pdf.output('datauristring'); // data:application/pdf;base64,...
+      AppInventor.setWebViewString(dataUri);
+      alert('PDF enviado a la app (WebViewString). Guarda el archivo desde MIT App Inventor.');
+    } else {
+      // fallback navegador: descarga directa
+      pdf.save(opt.filename);
+    }
+  }).catch(function(err){
+    alert('Error generando PDF: ' + (err && err.message ? err.message : err));
+  }).finally(function(){
+    // limpiamos el wrapper temporal
+    wrapper.remove();
+  });
 }
 
 /* ================== QR functions ================== */
@@ -298,7 +345,6 @@ function clearQR() {
 function generateQR(url) {
   clearQR();
   const container = document.getElementById('qr-container');
-  // QRCode crea un elemento <img> o <canvas> dentro del container
   qrcodeInstance = new QRCode(container, {
     text: url,
     width: 220,
