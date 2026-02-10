@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TIKO App</title>
+<title>TIKO - Sistema de Salud Animal</title>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
@@ -13,149 +13,184 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
-body{font-family:sans-serif;background:#f0f4f8;margin:0;padding:20px;text-align:center}
-.screen{display:none;max-width:400px;margin:auto;background:white;padding:20px;border-radius:15px;box-shadow:0 4px 10px rgba(0,0,0,.1)}
-.active{display:block}
-input{width:90%;padding:10px;margin:10px 0;border:1px solid #ccc;border-radius:5px}
-button{width:95%;padding:12px;background:#1e3a8a;color:white;border:none;border-radius:5px;font-weight:bold;cursor:pointer;margin-top:10px}
-.item{border-bottom:1px solid #eee;padding:10px;display:flex;justify-content:space-between;font-size:14px}
-h2{color:#1e3a8a}
+:root { --p:#1e3a8a; --s:#2563eb; --bg:#f8fafc; }
+body { font-family:Segoe UI,sans-serif; background:var(--bg); margin:0; }
+.screen { display:none; padding:20px; max-width:450px; margin:auto; }
+.screen.active { display:block; }
+.card { background:white; padding:20px; border-radius:16px; box-shadow:0 4px 15px rgba(0,0,0,.1); }
+h2 { color:var(--p); text-align:center; }
+input { width:100%; padding:12px; margin:8px 0; border:1px solid #ddd; border-radius:8px; }
+button { width:100%; padding:14px; border:none; border-radius:10px; background:var(--p); color:white; font-weight:bold; cursor:pointer; margin-top:10px; }
+.btn-sec { background:var(--s); }
+.btn-back { background:#94a3b8; }
+.item { padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; font-size:14px; }
+.solo-lectura .btn-back, .solo-lectura #btn-pdf-descarga { display:none!important; }
 </style>
 </head>
 
-<body>
+<body id="main-body">
 
+<!-- LOGIN -->
 <div id="scr-login" class="screen active">
-<h2>🐾 TIKO LOGIN</h2>
-<input id="login-user" placeholder="Tu Nombre">
-<button type="button" onclick="login()">INGRESAR</button>
+  <h2>🐾 TIKO LOGIN</h2>
+  <div class="card">
+    <input id="login-user" placeholder="Usuario">
+    <button onclick="login()">Entrar</button>
+  </div>
 </div>
 
+<!-- HOME -->
 <div id="scr-home" class="screen">
-<h2>Panel Principal</h2>
-<p>Hola, <span id="display-name"></span></p>
-<button type="button" onclick="show('scr-mascota')">🐶 MASCOTA</button>
-<button type="button" onclick="show('scr-vacunas')">💉 VACUNAS</button>
-<button type="button" onclick="show('scr-historial')">🩺 HISTORIAL</button>
-<button type="button" style="background:#2563eb" onclick="renderCartilla()">📋 CARTILLA</button>
-<button type="button" style="background:#94a3b8" onclick="location.reload()">SALIR</button>
+  <h2>Panel de Control</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <button onclick="show('scr-mascota')">🐶 Mascota</button>
+    <button onclick="show('scr-vacunas')">💉 Vacunas</button>
+    <button onclick="show('scr-historial')">🩺 Historial</button>
+    <button class="btn-sec" onclick="renderCartilla()">📋 Cartilla</button>
+  </div>
+  <button class="btn-back" onclick="location.reload()">Salir</button>
 </div>
 
+<!-- MASCOTA -->
 <div id="scr-mascota" class="screen">
-<h2>Datos Mascota</h2>
-<input id="m-nom" placeholder="Nombre Mascota">
-<input id="m-esp" placeholder="Especie">
-<input id="m-edad" type="number" placeholder="Edad">
-<button type="button" onclick="saveMascota()">GUARDAR</button>
-<button type="button" style="background:#94a3b8" onclick="show('scr-home')">VOLVER</button>
+  <h2>Datos Mascota</h2>
+  <div class="card">
+    <input id="m-nom" placeholder="Nombre">
+    <input id="m-esp" placeholder="Especie">
+    <input id="m-edad" type="number" placeholder="Edad">
+    <button onclick="saveMascota()">Guardar</button>
+  </div>
+  <button class="btn-back" onclick="show('scr-home')">Volver</button>
 </div>
 
+<!-- VACUNAS -->
 <div id="scr-vacunas" class="screen">
-<h2>Vacunas</h2>
-<input id="v-nom" placeholder="Nombre Vacuna">
-<input id="v-fec" type="date">
-<button type="button" onclick="addVacuna()">AGREGAR</button>
-<div id="list-v"></div>
-<button type="button" style="background:#94a3b8" onclick="show('scr-home')">VOLVER</button>
+  <h2>Vacunas</h2>
+  <div class="card">
+    <input id="v-nom" placeholder="Vacuna">
+    <input id="v-fec" type="date">
+    <button onclick="addVacuna()">Añadir</button>
+    <div id="list-v"></div>
+  </div>
+  <button class="btn-back" onclick="show('scr-home')">Volver</button>
 </div>
 
+<!-- HISTORIAL -->
 <div id="scr-historial" class="screen">
-<h2>Historial</h2>
-<input id="h-enf" placeholder="Enfermedad">
-<input id="h-fec" type="date">
-<button type="button" onclick="addHistorial()">AGREGAR</button>
-<div id="list-h"></div>
-<button type="button" style="background:#94a3b8" onclick="show('scr-home')">VOLVER</button>
+  <h2>Enfermedades</h2>
+  <div class="card">
+    <input id="h-enf" placeholder="Enfermedad">
+    <input id="h-fec" type="date">
+    <button onclick="addHistorial()">Añadir</button>
+    <div id="list-h"></div>
+  </div>
+  <button class="btn-back" onclick="show('scr-home')">Volver</button>
 </div>
 
+<!-- CARTILLA -->
 <div id="scr-cartilla" class="screen">
-<div id="pdf-area">
-<h2 style="text-align:center;border-bottom:2px solid #1e3a8a">CARTILLA TIKO</h2>
-<div id="c-mascota"></div>
-<hr>
-<b>VACUNAS</b>
-<div id="c-vacunas"></div>
-<hr>
-<b>HISTORIAL</b>
-<div id="c-historial"></div>
-</div>
-<button type="button" style="background:#10b981" onclick="downloadPDF()">📄 PDF</button>
-<button type="button" style="background:#94a3b8" onclick="show('scr-home')">VOLVER</button>
+  <div id="pdf-area" class="card">
+    <h2 style="border-bottom:3px solid var(--p)">CARTILLA TIKO</h2>
+    <div id="c-mascota"></div>
+    <h3>💉 Vacunación</h3>
+    <div id="c-vacunas"></div>
+    <h3>🩺 Historial</h3>
+    <div id="c-historial"></div>
+  </div>
+  <button id="btn-pdf-descarga" class="btn-sec" onclick="downloadPDF()">📄 Descargar PDF</button>
+  <button class="btn-back" onclick="show('scr-home')">Volver</button>
 </div>
 
 <script>
-const firebaseConfig={
-apiKey:"AIzaSyANX656iqyz6NIo7WX_IvIMnY4w9SQP6sU",
-databaseURL:"https://tiko-ap-default-rtdb.firebaseio.com/",
-projectId:"tiko-ap",
-appId:"1:97455117291:web:1dc88f792d0a74c394bfae"
-};
-firebase.initializeApp(firebaseConfig);
-const db=firebase.database();
-let currentUser="";
+/* ================= FIREBASE ================= */
+firebase.initializeApp({
+  apiKey:"AIzaSyANX656iqyz6NIo7WX_IvIMnY4w9SQP6sU",
+  databaseURL:"https://tiko-ap-default-rtdb.firebaseio.com/",
+  projectId:"tiko-ap",
+  appId:"1:97455117291:web:1dc88f792d0a74c394bfae"
+});
+const db = firebase.database();
+let currentUser = "";
 
+/* ================= QR MODE ================= */
+window.onload = () => {
+  const p = new URLSearchParams(location.search);
+  if(p.get("modo")==="ver" && p.get("user")){
+    currentUser = p.get("user");
+    document.body.classList.add("solo-lectura");
+    renderCartilla();
+  }
+};
+
+/* ================= FUNCIONES ================= */
 function show(id){
-document.querySelectorAll('.screen').forEach(s=>s.style.display='none');
-document.getElementById(id).style.display='block';
-if(id==='scr-vacunas')loadList('vacunas','list-v');
-if(id==='scr-historial')loadList('historial','list-h');
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  if(id==="scr-vacunas") loadList("vacunas","list-v");
+  if(id==="scr-historial") loadList("historial","list-h");
 }
 
 function login(){
-const name=document.getElementById('login-user').value.trim();
-if(!name){alert('Escribe tu nombre');return;}
-currentUser=name.replace(/\s+/g,'_');
-document.getElementById('display-name').innerText=name;
-show('scr-home');
+  const v = document.getElementById("login-user").value.trim();
+  if(!v) return alert("Escribe un usuario");
+  currentUser = v.replace(/\s+/g,"_");
+  show("scr-home");
 }
 
 function saveMascota(){
-db.ref(currentUser+'/mascota').set({
-nombre:m-nom.value,
-especie:m-esp.value,
-edad:m-edad.value
-}).then(()=>alert('Guardado'));
+  db.ref(currentUser+"/mascota").set({
+    nombre:m-nom.value,
+    especie:m-esp.value,
+    edad:m-edad.value
+  }).then(()=>alert("Guardado"));
 }
 
 function addVacuna(){
-db.ref(currentUser+'/vacunas').push({
-nom:v-nom.value,fec:v-fec.value
-}).then(()=>{v-nom.value='';loadList('vacunas','list-v')});
+  db.ref(currentUser+"/vacunas").push({
+    nom:v-nom.value,fec:v-fec.value
+  }).then(()=>{v-nom.value="";loadList("vacunas","list-v")});
 }
 
 function addHistorial(){
-db.ref(currentUser+'/historial').push({
-enf:h-enf.value,fec:h-fec.value
-}).then(()=>{h-enf.value='';loadList('historial','list-h')});
+  db.ref(currentUser+"/historial").push({
+    enf:h-enf.value,fec:h-fec.value
+  }).then(()=>{h-enf.value="";loadList("historial","list-h")});
 }
 
 function loadList(path,div){
-db.ref(currentUser+'/'+path).once('value',s=>{
-let h='';
-s.forEach(c=>{
-const d=c.val();
-h+=`<div class="item"><span>${d.nom||d.enf}</span><span>${d.fec}</span></div>`;
-});
-document.getElementById(div).innerHTML=h;
-});
+  db.ref(currentUser+"/"+path).once("value",s=>{
+    let h="";
+    s.forEach(c=>{
+      const d=c.val();
+      h+=`<div class="item"><span>${d.nom||d.enf}</span><span>${d.fec}</span></div>`;
+    });
+    document.getElementById(div).innerHTML=h;
+  });
 }
 
 function renderCartilla(){
-db.ref(currentUser).once('value',s=>{
-const d=s.val()||{};
-const m=d.mascota||{};
-c-mascota.innerHTML=`<p>Dueño: ${currentUser.replace('_',' ')}</p><p>Mascota: ${m.nombre||'-'}</p>`;
-c-vacunas.innerHTML='';
-c-historial.innerHTML='';
-if(d.vacunas)Object.values(d.vacunas).forEach(v=>c-vacunas.innerHTML+=`💉 ${v.nom} - ${v.fec}<br>`);
-if(d.historial)Object.values(d.historial).forEach(h=>c-historial.innerHTML+=`🩺 ${h.enf} - ${h.fec}<br>`);
-show('scr-cartilla');
-});
+  db.ref(currentUser).once("value",s=>{
+    const d=s.val()||{};
+    const m=d.mascota||{};
+    c-mascota.innerHTML=`<b>Usuario:</b> ${currentUser}<br><b>Mascota:</b> ${m.nombre||"-"} (${m.especie||"-"})`;
+    c-vacunas.innerHTML=d.vacunas?Object.values(d.vacunas).map(v=>`💉 ${v.nom} - ${v.fec}`).join("<br>"):"Sin vacunas";
+    c-historial.innerHTML=d.historial?Object.values(d.historial).map(h=>`🩺 ${h.enf} - ${h.fec}`).join("<br>"):"Sin historial";
+    show("scr-cartilla");
+  });
 }
 
 function downloadPDF(){
-html2pdf().from(document.getElementById('pdf-area')).save(`TIKO_${currentUser}.pdf`);
+  html2pdf().from(document.getElementById("pdf-area")).save(`TIKO_${currentUser}.pdf`);
 }
+
+/* ======= EXPONER A WINDOW (CLAVE) ======= */
+window.login = login;
+window.show = show;
+window.saveMascota = saveMascota;
+window.addVacuna = addVacuna;
+window.addHistorial = addHistorial;
+window.renderCartilla = renderCartilla;
+window.downloadPDF = downloadPDF;
 </script>
 
 </body>
