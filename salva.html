@@ -3,19 +3,22 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>TIKO - salva.html</title>
+<title>TIKO - salva.html (QR + MIT friendly)</title>
 
 <!-- Firebase compat -->
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
-<!-- html2pdf -->
+<!-- html2pdf (genera el PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
+<!-- qrcode.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
 <style>
-:root { --p:#1e3a8a; --s:#2563eb; --bg:#f8fafc; }
-body{font-family:Segoe UI,sans-serif;background:var(--bg);margin:0;padding:20px}
-.screen{display:none;max-width:700px;margin:20px auto}
+:root{--p:#1e3a8a;--s:#2563eb;--bg:#f8fafc}
+body{font-family:Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);margin:0;padding:20px}
+.screen{display:none;max-width:740px;margin:18px auto}
 .screen.active{display:block}
 .card{background:#fff;padding:18px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
 h2{text-align:center;color:var(--p)}
@@ -25,6 +28,10 @@ button{width:100%;padding:12px;border:none;border-radius:8px;background:var(--p)
 .btn-back{background:#94a3b8}
 .item{display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #eee}
 .solo-lectura .btn-back,.solo-lectura #btn-pdf-descarga{display:none!important}
+.small{font-size:13px;color:#444}
+.qr-wrap{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.qr-box{background:white;padding:12px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.06)}
+.qr-link{word-break:break-all;color:#0b61d6}
 </style>
 </head>
 <body id="main-body">
@@ -34,7 +41,7 @@ button{width:100%;padding:12px;border:none;border-radius:8px;background:var(--p)
   <div class="card">
     <h2>🐾 TIKO LOGIN</h2>
     <input id="login-user" placeholder="Usuario (ej. juan_perez)">
-    <button type="button" id="btn-login" onclick="login()">Entrar</button>
+    <button type="button" onclick="login()">Entrar</button>
   </div>
 </div>
 
@@ -46,7 +53,8 @@ button{width:100%;padding:12px;border:none;border-radius:8px;background:var(--p)
       <button type="button" onclick="show('scr-mascota')">🐶 Mascota</button>
       <button type="button" onclick="show('scr-vacunas')">💉 Vacunas</button>
       <button type="button" onclick="show('scr-historial')">🩺 Historial</button>
-      <button type="button" class="btn-sec" onclick="renderCartilla()">📋 Cartilla</button>
+      <button type="button" class="btn-sec" onclick="show('scr-qr')">🔳 Generar QR</button>
+      <button type="button" class="btn-sec" onclick="renderCartilla()">📋 Ver Cartilla</button>
     </div>
     <button type="button" class="btn-back" onclick="location.reload()">Salir</button>
   </div>
@@ -98,12 +106,47 @@ button{width:100%;padding:12px;border:none;border-radius:8px;background:var(--p)
     <h3>🩺 Historial</h3>
     <div id="c-historial"></div>
   </div>
-  <button type="button" id="btn-pdf-descarga" class="btn-sec" onclick="downloadPDF()">📄 Descargar PDF</button>
+
+  <button type="button" id="btn-pdf-descarga" class="btn-sec" onclick="downloadPDF()">📄 Descargar / Enviar a App</button>
   <button type="button" class="btn-back" onclick="show('scr-home')">Volver</button>
 </div>
 
+<!-- QR -->
+<div id="scr-qr" class="screen">
+  <div class="card">
+    <h2>Generar QR - Cartilla</h2>
+
+    <div class="small">Generar QR para el usuario actual:</div>
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button type="button" onclick="generateQRForCurrentUser()">Generar QR para usuario actual</button>
+      <button type="button" class="btn-back" onclick="show('scr-home')">Volver</button>
+    </div>
+
+    <hr style="margin:12px 0">
+
+    <div class="small">O ingresa un usuario manualmente (ej. juan_perez) y genera el QR:</div>
+    <input id="qr-user-input" placeholder="usuario_ejemplo">
+    <button type="button" class="btn-sec" onclick="generateQRManual()">Generar QR</button>
+
+    <div style="margin-top:14px" class="qr-wrap">
+      <div id="qr-container" class="qr-box"></div>
+      <div style="flex:1">
+        <div class="small">URL generada:</div>
+        <div id="qr-url" class="qr-link"></div>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <button type="button" onclick="downloadQR()" id="btn-download-qr">📥 Descargar QR</button>
+          <button type="button" onclick="openQRInNewTab()">🔍 Abrir enlace en nueva pestaña</button>
+        </div>
+      </div>
+    </div>
+    <p class="small" style="margin-top:10px;color:#666">
+      Nota: Para que otros dispositivos vean la cartilla, la URL del QR debe ser accesible públicamente (hostea este archivo).
+    </p>
+  </div>
+</div>
+
 <script>
-/* ---------- Firebase ---------- */
+/* =========== FIREBASE =========== */
 firebase.initializeApp({
   apiKey: "AIzaSyANX656iqyz6NIo7WX_IvIMnY4w9SQP6sU",
   databaseURL: "https://tiko-ap-default-rtdb.firebaseio.com/",
@@ -113,7 +156,7 @@ firebase.initializeApp({
 const db = firebase.database();
 let currentUser = "";
 
-/* ---------- Modo QR (opcional) ---------- */
+/* =========== ONLOAD (modo ver por QR) =========== */
 window.onload = function() {
   const p = new URLSearchParams(location.search);
   const modo = p.get('modo');
@@ -125,105 +168,192 @@ window.onload = function() {
   }
 };
 
-/* ---------- UI helpers ---------- */
-function show(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+/* =========== UI helpers =========== */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const el = document.getElementById(id);
   if (el) el.classList.add('active');
   if (id === 'scr-vacunas') loadList('vacunas','list-v');
   if (id === 'scr-historial') loadList('historial','list-h');
 }
 
-/* ---------- Auth simple (solo local) ---------- */
-function login() {
+/* =========== LOGIN simple =========== */
+function login(){
   const raw = document.getElementById('login-user').value.trim();
   if (!raw) { alert('Escribe un usuario'); return; }
   currentUser = raw.replace(/\s+/g,'_');
   show('scr-home');
 }
 
-/* ---------- Mascota ---------- */
-function saveMascota() {
+/* =========== DB functions =========== */
+function saveMascota(){
+  if(!currentUser){ alert('Inicia sesión primero'); return; }
   const nombre = document.getElementById('m-nom').value;
   const especie = document.getElementById('m-esp').value;
   const edad = document.getElementById('m-edad').value;
   db.ref(currentUser + '/mascota').set({ nombre, especie, edad })
     .then(()=> alert('Mascota guardada'))
-    .catch(err => alert('Error guardando mascota: ' + err.message));
+    .catch(err=> alert('Error guardando mascota: ' + err.message));
 }
 
-/* ---------- Vacunas ---------- */
-function addVacuna() {
+function addVacuna(){
+  if(!currentUser){ alert('Inicia sesión primero'); return; }
   const nom = document.getElementById('v-nom').value;
   const fec = document.getElementById('v-fec').value;
   if(!nom || !fec){ alert('Llena ambos campos'); return; }
   db.ref(currentUser + '/vacunas').push({ nom, fec })
-    .then(()=> {
-      document.getElementById('v-nom').value = '';
-      document.getElementById('v-fec').value = '';
-      loadList('vacunas','list-v');
-    })
-    .catch(err => alert('Error añadiendo vacuna: ' + err.message));
+    .then(()=> { document.getElementById('v-nom').value=''; document.getElementById('v-fec').value=''; loadList('vacunas','list-v'); })
+    .catch(err=> alert('Error añadiendo vacuna: ' + err.message));
 }
 
-/* ---------- Historial ---------- */
-function addHistorial() {
+function addHistorial(){
+  if(!currentUser){ alert('Inicia sesión primero'); return; }
   const enf = document.getElementById('h-enf').value;
   const fec = document.getElementById('h-fec').value;
   if(!enf || !fec){ alert('Llena ambos campos'); return; }
   db.ref(currentUser + '/historial').push({ enf, fec })
-    .then(()=> {
-      document.getElementById('h-enf').value = '';
-      document.getElementById('h-fec').value = '';
-      loadList('historial','list-h');
-    })
-    .catch(err => alert('Error añadiendo historial: ' + err.message));
+    .then(()=> { document.getElementById('h-enf').value=''; document.getElementById('h-fec').value=''; loadList('historial','list-h'); })
+    .catch(err=> alert('Error añadiendo historial: ' + err.message));
 }
 
-/* ---------- Cargar listas ---------- */
-function loadList(path, divId) {
-  if (!currentUser) return;
+function loadList(path, divId){
+  if(!currentUser) return;
   db.ref(currentUser + '/' + path).once('value')
-    .then(snap => {
+    .then(snap=>{
       let html = '';
-      snap.forEach(child => {
+      snap.forEach(child=>{
         const d = child.val();
-        html += `<div class="item"><span>${d.nom || d.enf}</span><span>${d.fec || ''}</span></div>`;
+        html += `<div class="item"><span>${d.nom||d.enf}</span><span>${d.fec||''}</span></div>`;
       });
       document.getElementById(divId).innerHTML = html || '<div style="padding:8px;color:#666">Sin registros</div>';
-    })
-    .catch(err => console.error('loadList error', err));
+    }).catch(err=> console.error('loadList error',err));
 }
 
-/* ---------- Render cartilla ---------- */
-function renderCartilla() {
-  if (!currentUser) { alert('Usuario no definido'); return; }
+function renderCartilla(){
+  if(!currentUser){ alert('Usuario no definido'); return; }
   db.ref(currentUser).once('value')
-    .then(snap => {
+    .then(snap=>{
       const data = snap.val() || {};
       const m = data.mascota || {};
       document.getElementById('c-mascota').innerHTML =
-        `<b>Usuario:</b> ${currentUser}<br><b>Mascota:</b> ${m.nombre || '-'} (${m.especie || '-'}) - ${m.edad||'-'}`;
-
+        `<b>Usuario:</b> ${currentUser}<br><b>Mascota:</b> ${m.nombre||'-'} (${m.especie||'-'}) - ${m.edad||'-'}`;
       const vHtml = data.vacunas ? Object.values(data.vacunas).map(v=>`<div class="item">💉 <span>${v.nom}</span><span>${v.fec||''}</span></div>`).join('') : '<div style="padding:8px;color:#666">Sin vacunas</div>';
       document.getElementById('c-vacunas').innerHTML = vHtml;
-
       const hHtml = data.historial ? Object.values(data.historial).map(h=>`<div class="item">🩺 <span>${h.enf}</span><span>${h.fec||''}</span></div>`).join('') : '<div style="padding:8px;color:#666">Sin historial</div>';
       document.getElementById('c-historial').innerHTML = hHtml;
-
       show('scr-cartilla');
-    })
-    .catch(err => alert('Error cargando cartilla: ' + err.message));
+    }).catch(err=> alert('Error cargando cartilla: ' + err.message));
 }
 
-/* ---------- PDF ---------- */
-function downloadPDF() {
+/* ================== PDF (navegador o MIT) ================== */
+function downloadPDF(){
   const element = document.getElementById('pdf-area');
-  if (!element) return;
-  html2pdf().from(element).save(`TIKO_${currentUser || 'user'}.pdf`);
+  if(!element){ alert('No hay contenido'); return; }
+
+  const opt = {
+    margin: 8,
+    filename: `TIKO_${currentUser||'user'}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(element).toPdf().output('datauristring')
+    .then(function (dataUriString) {
+      if (window.AppInventor && typeof AppInventor.setWebViewString === 'function') {
+        // Envía la DataURI completa a MIT App Inventor para que la app la guarde
+        AppInventor.setWebViewString(dataUriString);
+        alert('PDF enviado a la app (WebViewString). Guarda el archivo desde MIT App Inventor.');
+      } else {
+        // Fallback: descargar en navegador
+        const a = document.createElement('a');
+        a.href = dataUriString;
+        a.download = opt.filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+    })
+    .catch(function(err){
+      alert('Error generando PDF: ' + (err && err.message ? err.message : err));
+    });
 }
 
-/* ---------- Exponer funciones globales para onclick="" ---------- */
+/* ================== QR functions ================== */
+/* Construye la URL de cartilla para user (usa la misma ruta actual sin query) */
+function buildCartillaUrlFor(user) {
+  const base = location.href.split('?')[0].split('#')[0];
+  return `${base}?modo=ver&user=${encodeURIComponent(user)}`;
+}
+
+let qrcodeInstance = null;
+
+function clearQR() {
+  const container = document.getElementById('qr-container');
+  container.innerHTML = '';
+  document.getElementById('qr-url').textContent = '';
+  qrcodeInstance = null;
+}
+
+function generateQR(url) {
+  clearQR();
+  const container = document.getElementById('qr-container');
+  // QRCode crea un elemento <img> o <canvas> dentro del container
+  qrcodeInstance = new QRCode(container, {
+    text: url,
+    width: 220,
+    height: 220,
+    correctLevel: QRCode.CorrectLevel.H
+  });
+  document.getElementById('qr-url').textContent = url;
+}
+
+function generateQRForCurrentUser() {
+  if (!currentUser) { alert('No hay usuario actual. Haz login o usa la opción manual.'); return; }
+  const url = buildCartillaUrlFor(currentUser);
+  generateQR(url);
+}
+
+function generateQRManual() {
+  const u = document.getElementById('qr-user-input').value.trim();
+  if (!u) { alert('Escribe un usuario para generar el QR'); return; }
+  const url = buildCartillaUrlFor(u.replace(/\s+/g,'_'));
+  generateQR(url);
+}
+
+/* Descargar la imagen del QR */
+function downloadQR() {
+  const container = document.getElementById('qr-container');
+  const img = container.querySelector('img');
+  const canvas = container.querySelector('canvas');
+
+  if (img) {
+    const src = img.src;
+    const a = document.createElement('a');
+    a.href = src;
+    a.download = `TIKO_QR_${Date.now()}.png`;
+    a.click();
+    return;
+  }
+  if (canvas) {
+    const dataUrl = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = `TIKO_QR_${Date.now()}.png`;
+    a.click();
+    return;
+  }
+  alert('QR no generado todavía');
+}
+
+/* Abrir la URL generada en nueva pestaña */
+function openQRInNewTab() {
+  const url = document.getElementById('qr-url').textContent;
+  if (!url) { alert('Genera primero el QR'); return; }
+  window.open(url, '_blank');
+}
+
+/* =========== Exponer funciones globales =========== */
 window.login = login;
 window.show = show;
 window.saveMascota = saveMascota;
@@ -232,6 +362,10 @@ window.addHistorial = addHistorial;
 window.loadList = loadList;
 window.renderCartilla = renderCartilla;
 window.downloadPDF = downloadPDF;
+window.generateQRForCurrentUser = generateQRForCurrentUser;
+window.generateQRManual = generateQRManual;
+window.downloadQR = downloadQR;
+window.openQRInNewTab = openQRInNewTab;
 </script>
 </body>
 </html>
