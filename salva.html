@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>TIKO - salva.html (PDF mejorado + QR + MIT friendly)</title>
+<title>TIKO - salva.html (QR + MIT friendly)</title>
 
 <!-- Firebase compat -->
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
@@ -33,44 +33,29 @@ button{width:100%;padding:12px;border:none;border-radius:8px;background:var(--p)
 .qr-box{background:white;padding:12px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.06)}
 .qr-link{word-break:break-all;color:#0b61d6}
 
-/* --- Estilos para PDF (no afectan la UI normal) --- */
+/* ---------- CORRECCIONES PDF: ancho A4 y saltos de página ---------- */
 #pdf-area {
-  background: white;
+  width: 210mm;               /* ancho A4 */
   box-sizing: border-box;
-  padding: 12mm; /* margen interior para la vista normal */
+  padding: 12mm;              /* márgenes interiores en mm */
+  background: white;
   overflow: visible !important;
-  width: auto; /* ancho en pantalla; se usará CSS de página al generar pdf */
 }
 
-/* Evitar cortar items dentro de una página */
+/* evitar que los ítems se rompan a la mitad */
 .item {
   break-inside: avoid;
   page-break-inside: avoid;
   -webkit-column-break-inside: avoid;
 }
 
-/* Páginas que generaremos dinámicamente */
-.pdf-page {
-  width: 210mm;        /* A4 */
-  height: 297mm;       /* A4 */
-  box-sizing: border-box;
-  background: white;
-  overflow: hidden;
-  padding: 12mm;       /* margen interior de página */
+/* clase que fuerza salto de página */
+.page-break {
+  display: block;
   page-break-after: always;
-}
-
-.pdf-page .page-content {
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-.pdf-page .item {
-  break-inside: avoid;
-  page-break-inside: avoid;
-  -webkit-column-break-inside: avoid;
+  break-after: page;
+  margin: 0;
+  padding: 0;
 }
 </style>
 </head>
@@ -136,7 +121,7 @@ button{width:100%;padding:12px;border:none;border-radius:8px;background:var(--p)
   </div>
 </div>
 
-<!-- CARTILLA (contenido que se convertirá a PDF) -->
+<!-- CARTILLA -->
 <div id="scr-cartilla" class="screen">
   <div class="card" id="pdf-area">
     <h2>CARTILLA TIKO</h2>
@@ -285,48 +270,60 @@ function renderCartilla(){
     }).catch(err=> alert('Error cargando cartilla: ' + err.message));
 }
 
-/* ================== PDF (paginación por altura real) ================== */
-<script>
+/* ================== PDF (mejor paginado para evitar cortes) ================== */
 function downloadPDF(){
-  const source = document.getElementById('pdf-area');
-  if (!source) { alert('No hay contenido para generar'); return; }
+  const element = document.getElementById('pdf-area');
+  if(!element){ alert('No hay contenido'); return; }
 
+  // Opciones
   const opt = {
-    margin: 0,
-    filename: `TIKO_${currentUser || 'user'}.pdf`,
+    margin: 8,
+    filename: `TIKO_${currentUser||'user'}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true, allowTaint: false },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak: { mode: ['css', 'legacy'] }
   };
 
-  /* === CLONADO ORIGINAL (NO SE TOCA) === */
-  const cloneRoot = source.cloneNode(true);
+  // 1) clonamos el área para no afectar UI visible
+  const clone = element.cloneNode(true);
 
+  // 2) insertar saltos de página cada N items si es necesario
+  const ITEMS_PER_PAGE = 12; // ajusta si ves que aún se corta (prueba 8-16)
+  const items = clone.querySelectorAll('.item');
+  if (items.length > ITEMS_PER_PAGE) {
+    for (let i = ITEMS_PER_PAGE; i < items.length; i += ITEMS_PER_PAGE) {
+      const br = document.createElement('div');
+      br.className = 'page-break';
+      // insertamos el salto antes del item i
+      items[i].parentNode.insertBefore(br, items[i]);
+    }
+  }
+
+  // 3) envolver en contenedor temporal
   const wrapper = document.createElement('div');
-  wrapper.style.position = 'fixed';
-  wrapper.style.left = '-10000px';
-  wrapper.style.top = '0';
-  wrapper.style.width = '210mm';
-  wrapper.style.boxSizing = 'border-box';
+  wrapper.style.background = '#fff';
+  wrapper.style.padding = '0';
+  wrapper.appendChild(clone);
   document.body.appendChild(wrapper);
-  wrapper.appendChild(cloneRoot);
 
-  /* === GENERACIÓN PDF (FIX REAL) === */
-  html2pdf(wrapper, opt)
-    .then(pdf => {
-      if (window.AppInventor && typeof AppInventor.setWebViewString === 'function') {
-        const dataUri = pdf.output('datauristring');
-        AppInventor.setWebViewString(dataUri);
-        alert('PDF enviado a la app (WebViewString).');
-      }
-    })
-    .catch(err => {
-      alert('Error generando PDF: ' + err.message);
-    })
-    .finally(() => {
-      wrapper.remove();
-    });
+  // 4) generar PDF con html2pdf a partir del wrapper
+  html2pdf().set(opt).from(wrapper).toPdf().get('pdf').then(function (pdf) {
+    // Si estamos dentro de MIT App Inventor, enviamos la DataURI
+    if (window.AppInventor && typeof AppInventor.setWebViewString === 'function') {
+      const dataUri = pdf.output('datauristring'); // data:application/pdf;base64,...
+      AppInventor.setWebViewString(dataUri);
+      alert('PDF enviado a la app (WebViewString). Guarda el archivo desde MIT App Inventor.');
+    } else {
+      // fallback navegador: descarga directa
+      pdf.save(opt.filename);
+    }
+  }).catch(function(err){
+    alert('Error generando PDF: ' + (err && err.message ? err.message : err));
+  }).finally(function(){
+    // limpiamos el wrapper temporal
+    wrapper.remove();
+  });
 }
 
 /* ================== QR functions ================== */
@@ -418,5 +415,4 @@ window.openQRInNewTab = openQRInNewTab;
 </script>
 </body>
 </html>
-
 
