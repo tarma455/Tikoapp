@@ -259,7 +259,7 @@ button:active{
 
         <input type="text"
         id="m-nom"
-        placeholder="Nombre">
+        placeholder="Nombre de la mascota">
 
         <input type="text"
         id="m-esp"
@@ -268,6 +268,10 @@ button:active{
         <input type="number"
         id="m-edad"
         placeholder="Edad">
+
+        <input type="text"
+        id="m-dueno"
+        placeholder="Nombre del dueño">
 
         <input type="tel"
         id="m-tel"
@@ -619,6 +623,9 @@ function saveMascota(){
         edad:
         document.getElementById('m-edad').value,
 
+        dueno:
+        document.getElementById('m-dueno').value,
+
         telefono:
         document.getElementById('m-tel').value
 
@@ -750,7 +757,8 @@ function renderCartilla(){
             nombre:'---',
             especie:'---',
             edad:'---',
-            telefono:'---'
+            telefono:'---',
+            dueno:'---'
 
         };
 
@@ -760,9 +768,9 @@ function renderCartilla(){
 
         <p>
 
-        <strong>Correo:</strong>
+        <strong>Dueño:</strong>
 
-        ${currentUser.email}
+        ${m.dueno}
 
         </p>
 
@@ -780,13 +788,17 @@ function renderCartilla(){
 
         ${m.nombre}
 
-        |
+        </p>
+
+        <p>
 
         <strong>Especie:</strong>
 
         ${m.especie}
 
-        |
+        </p>
+
+        <p>
 
         <strong>Edad:</strong>
 
@@ -869,7 +881,7 @@ function generateQR(){
 
     const url =
 
-    'https://tarma455.github.io/Tikoapp/salva.html'
+    'https://tarma455.github.io/Tikoapp/cartilla.html?id='
 
     + currentUser.uid;
 
@@ -886,6 +898,9 @@ function generateQR(){
 }
 
 </script>
+
+</body>
+</html>
 
 </body>
 </html>
