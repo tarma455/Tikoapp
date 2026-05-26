@@ -1,95 +1,369 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Cartilla Médica - TIKO</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { margin:0; font-family:Arial, sans-serif; background:linear-gradient(180deg,#0f172a,#1e3a8a); color: #333; }
-    .card { max-width:420px; margin:20px auto; background:#fff; border-radius:16px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.4); }
-    h1 { text-align:center; margin:0; color: #1e3a8a; }
-    .section { margin-top:14px; padding:12px; border-radius:12px; background:#f1f5f9; border-left: 5px solid #2563eb; }
-    .section h3 { margin:0 0 6px; font-size: 1rem; color: #475569; }
-    .section p { margin: 0; font-weight: bold; color: #1e293b; }
-    .btn { width:100%; padding:12px; border:none; border-radius:12px; background:linear-gradient(90deg,#2563eb,#06b6d4); color:#fff; font-weight:bold; margin-top:12px; cursor:pointer; }
-    .back { background:#64748b; }
-    ul { padding-left:18px; margin:0; }
-    li { margin-bottom: 4px; font-weight: bold; color: #1e293b; }
-  </style>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width,
+initial-scale=1.0">
+
+<meta name="theme-color"
+content="#1e3a8a">
+
+<title>Cartilla TIKO</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+
+<style>
+
+:root{
+
+    --p:#1e3a8a;
+    --bg:#f8fafc;
+
+}
+
+body{
+
+    font-family:'Segoe UI',sans-serif;
+    background:var(--bg);
+    margin:0;
+    padding:20px;
+    color:#333;
+
+}
+
+.card{
+
+    background:white;
+    padding:20px;
+    border-radius:16px;
+    box-shadow:0 4px 15px rgba(0,0,0,.1);
+    max-width:500px;
+    margin:auto;
+
+}
+
+h1{
+
+    text-align:center;
+    color:var(--p);
+    border-bottom:3px solid var(--p);
+    padding-bottom:10px;
+
+}
+
+.item{
+
+    padding:10px;
+    border-bottom:1px solid #eee;
+    display:flex;
+    justify-content:space-between;
+    font-size:14px;
+
+}
+
+.section{
+
+    margin-top:20px;
+
+}
+
+.section-title{
+
+    background:#f1f5f9;
+    padding:8px;
+    border-radius:8px;
+    font-weight:bold;
+    margin-bottom:10px;
+
+}
+
+.center{
+
+    text-align:center;
+
+}
+
+.btn{
+
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:10px;
+    background:var(--p);
+    color:white;
+    font-weight:bold;
+    margin-top:20px;
+    cursor:pointer;
+
+}
+
+</style>
+
 </head>
+
 <body>
 
-<div class="card" id="cartilla">
-  <h1>🐾 CARTILLA MÉDICA</h1>
+<div class="card">
 
-  <div class="section">
-    <h3>👤 Dueño</h3>
-    <p id="dueno">Cargando...</p>
-  </div>
+    <h1>
+        🐾 CARTILLA TIKO
+    </h1>
 
-  <div class="section">
-    <h3>🐶 Mascota</h3>
-    <p id="mascota">Cargando...</p>
-  </div>
+    <div id="infoMascota">
 
-  <div class="section">
-    <h3>💉 Vacunas</h3>
-    <ul id="vacunas"><li>Sin datos registrados</li></ul>
-  </div>
+        Cargando información...
 
-  <div class="section">
-    <h3>🩺 Historial Médico</h3>
-    <ul id="historial"><li>Sin datos registrados</li></ul>
-  </div>
+    </div>
 
-  <button class="btn" onclick="window.print()">📄 Exportar cartilla</button>
-  <button class="btn back" onclick="window.history.back()">⬅ Volver</button>
+    <div class="section">
+
+        <div class="section-title">
+
+            💉 REGISTRO DE VACUNACIÓN
+
+        </div>
+
+        <div id="vacunas">
+
+            Sin registros
+
+        </div>
+
+    </div>
+
+    <div class="section">
+
+        <div class="section-title">
+
+            🩺 HISTORIAL MÉDICO
+
+        </div>
+
+        <div id="historial">
+
+            Sin registros
+
+        </div>
+
+    </div>
+
+    <button class="btn"
+    onclick="window.print()">
+
+        📄 Descargar / Imprimir Cartilla
+
+    </button>
+
 </div>
 
 <script>
-function recibir() {
-  if (!window.AppInventor) return;
-  
-  try {
-    const rawData = window.AppInventor.getWebViewString();
-    if (!rawData || rawData === "") return;
-    
-    const data = JSON.parse(rawData);
 
-    // 1. Cargar Dueño
-    if(data.dueno) document.getElementById("dueno").innerText = data.dueno;
+// FIREBASE CONFIG
 
-    // 2. Cargar Mascota
-    if(data.mascota) {
-      document.getElementById("mascota").innerText = (typeof data.mascota === 'object') ? (data.mascota.nombre || "Mascota") : data.mascota;
-    }
+const firebaseConfig = {
 
-    // 3. Cargar Vacunas (Corregido para tus bloques de diccionario)
-    if(Array.isArray(data.vacunas) && data.vacunas.length > 0) {
-      const ul = document.getElementById("vacunas");
-      ul.innerHTML = data.vacunas.map(v => {
-          // Busca el nombre de la vacuna dentro del diccionario que envías
-          let nombre = (typeof v === 'object') ? (v.nombre || v.vacuna || "Vacuna") : v;
-          let fecha = (typeof v === 'object' && v.fecha) ? ` (${v.fecha})` : "";
-          return `<li>${nombre}${fecha}</li>`;
-      }).join('');
-    }
+  apiKey: "AIzaSyANX656iqyz6NIo7WX_IvIMnY4w9SQP6sU",
 
-    // 4. Cargar Historial (Corregido)
-    if(Array.isArray(data.historial) && data.historial.length > 0) {
-      const ul = document.getElementById("historial");
-      ul.innerHTML = data.historial.map(h => {
-          let motivo = (typeof h === 'object') ? (h.motivo || "Consulta") : h;
-          return `<li>${motivo}</li>`;
-      }).join('');
-    }
-  } catch(e) { 
-    console.log("Esperando datos..."); 
-  }
+  authDomain: "tiko-ap.firebaseapp.com",
+
+  databaseURL: "https://tiko-ap-default-rtdb.firebaseio.com",
+
+  projectId: "tiko-ap",
+
+  storageBucket: "tiko-ap.firebasestorage.app",
+
+  messagingSenderId: "97455117291",
+
+  appId: "1:97455117291:web:1dc88f792d0a74c394bfae"
+
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.database();
+
+// OBTENER UID DEL QR
+
+const params =
+new URLSearchParams(window.location.search);
+
+const uid = params.get('id');
+
+// VALIDAR UID
+
+if(!uid){
+
+    document.body.innerHTML = `
+
+    <div class="card center">
+
+        <h2>
+            QR inválido
+        </h2>
+
+    </div>
+
+    `;
+
+}else{
+
+    cargarCartilla(uid);
+
 }
 
-// Escanea datos cada 600ms
-setInterval(recibir, 600);
+// CARGAR CARTILLA
+
+function cargarCartilla(uid){
+
+    db.ref('usuarios/' + uid)
+
+    .once('value',(snap)=>{
+
+        const data = snap.val();
+
+        if(!data){
+
+            document.body.innerHTML = `
+
+            <div class="card center">
+
+                <h2>
+                    Cartilla no encontrada
+                </h2>
+
+            </div>
+
+            `;
+
+            return;
+
+        }
+
+        const m = data.mascota || {};
+
+        document.getElementById('infoMascota')
+
+        .innerHTML = `
+
+        <p>
+
+        <strong>Mascota:</strong>
+
+        ${m.nombre || '---'}
+
+        </p>
+
+        <p>
+
+        <strong>Especie:</strong>
+
+        ${m.especie || '---'}
+
+        </p>
+
+        <p>
+
+        <strong>Edad:</strong>
+
+        ${m.edad || '---'} años
+
+        </p>
+
+        <p>
+
+        <strong>Teléfono:</strong>
+
+        ${m.telefono || '---'}
+
+        </p>
+
+        `;
+
+        // VACUNAS
+
+        let vacunasHTML = '';
+
+        if(data.vacunas){
+
+            Object.values(data.vacunas)
+
+            .forEach(v=>{
+
+                vacunasHTML += `
+
+                <div class="item">
+
+                    <span>
+
+                    💉 ${v.nom}
+
+                    </span>
+
+                    <span>
+
+                    ${v.fec}
+
+                    </span>
+
+                </div>
+
+                `;
+
+            });
+
+        }
+
+        document.getElementById('vacunas')
+
+        .innerHTML = vacunasHTML || 'Sin vacunas';
+
+        // HISTORIAL
+
+        let historialHTML = '';
+
+        if(data.historial){
+
+            Object.values(data.historial)
+
+            .forEach(h=>{
+
+                historialHTML += `
+
+                <div class="item">
+
+                    <span>
+
+                    🩺 ${h.enf}
+
+                    </span>
+
+                    <span>
+
+                    ${h.fec}
+
+                    </span>
+
+                </div>
+
+                `;
+
+            });
+
+        }
+
+        document.getElementById('historial')
+
+        .innerHTML = historialHTML || 'Sin registros';
+
+    });
+
+}
+
 </script>
 
 </body>
