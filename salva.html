@@ -10,6 +10,8 @@ initial-scale=1.0,
 maximum-scale=1.0,
 user-scalable=no">
 
+<meta name="theme-color" content="#1e3a8a">
+
 <title>TIKO App - Control Total</title>
 
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
@@ -18,7 +20,7 @@ user-scalable=no">
 
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <style>
 
@@ -162,6 +164,12 @@ button:active{
 
 }
 
+#qrcode canvas{
+
+    border-radius:10px;
+
+}
+
 </style>
 
 </head>
@@ -225,8 +233,12 @@ button:active{
             🩺 Historial
         </button>
 
-        <button class="btn-sec" onclick="renderCartilla()">
-            📋 CARTILLA
+        <button onclick="renderCartilla()">
+            📋 Cartilla
+        </button>
+
+        <button class="btn-sec" onclick="generateQR()">
+            📱 QR
         </button>
 
     </div>
@@ -245,11 +257,21 @@ button:active{
 
     <div class="card">
 
-        <input type="text" id="m-nom" placeholder="Nombre">
+        <input type="text"
+        id="m-nom"
+        placeholder="Nombre">
 
-        <input type="text" id="m-esp" placeholder="Especie">
+        <input type="text"
+        id="m-esp"
+        placeholder="Especie">
 
-        <input type="number" id="m-edad" placeholder="Edad">
+        <input type="number"
+        id="m-edad"
+        placeholder="Edad">
+
+        <input type="tel"
+        id="m-tel"
+        placeholder="Teléfono de contacto">
 
         <button onclick="saveMascota()">
             Guardar Datos
@@ -257,8 +279,11 @@ button:active{
 
     </div>
 
-    <button class="btn-back" onclick="show('scr-home')">
+    <button class="btn-back"
+    onclick="show('scr-home')">
+
         Volver
+
     </button>
 
 </div>
@@ -271,20 +296,29 @@ button:active{
 
     <div class="card">
 
-        <input type="text" id="v-nom" placeholder="Vacuna">
+        <input type="text"
+        id="v-nom"
+        placeholder="Vacuna">
 
-        <input type="date" id="v-fec">
+        <input type="date"
+        id="v-fec">
 
         <button onclick="addVacuna()">
             Añadir
         </button>
 
-        <div id="list-v" style="margin-top:15px"></div>
+        <div id="list-v"
+        style="margin-top:15px">
+
+        </div>
 
     </div>
 
-    <button class="btn-back" onclick="show('scr-home')">
+    <button class="btn-back"
+    onclick="show('scr-home')">
+
         Volver
+
     </button>
 
 </div>
@@ -297,20 +331,29 @@ button:active{
 
     <div class="card">
 
-        <input type="text" id="h-enf" placeholder="Enfermedad">
+        <input type="text"
+        id="h-enf"
+        placeholder="Enfermedad">
 
-        <input type="date" id="h-fec">
+        <input type="date"
+        id="h-fec">
 
         <button onclick="addHistorial()">
             Añadir Registro
         </button>
 
-        <div id="list-h" style="margin-top:15px"></div>
+        <div id="list-h"
+        style="margin-top:15px">
+
+        </div>
 
     </div>
 
-    <button class="btn-back" onclick="show('scr-home')">
+    <button class="btn-back"
+    onclick="show('scr-home')">
+
         Volver
+
     </button>
 
 </div>
@@ -320,9 +363,11 @@ button:active{
 <div id="scr-cartilla" class="screen">
 
     <div id="pdf-area"
-    style="background:white;
+    style="
+    background:white;
     padding:20px;
-    border-radius:10px;">
+    border-radius:10px;
+    ">
 
         <h1 style="
         text-align:center;
@@ -334,14 +379,17 @@ button:active{
         </h1>
 
         <div id="c-mascota"
-        style="margin:20px 0;
-        line-height:1.6">
+        style="
+        margin:20px 0;
+        line-height:1.6;
+        ">
 
         </div>
 
         <h3 style="
         background:#f1f5f9;
-        padding:5px">
+        padding:5px;
+        ">
 
             💉 REGISTRO DE VACUNACIÓN
 
@@ -351,7 +399,8 @@ button:active{
 
         <h3 style="
         background:#f1f5f9;
-        padding:5px">
+        padding:5px;
+        ">
 
             🩺 HISTORIAL DE ENFERMEDADES
 
@@ -361,12 +410,46 @@ button:active{
 
     </div>
 
-    <button onclick="downloadPDF()">
-        📄 DESCARGAR PDF
+    <button class="btn-back"
+    onclick="show('scr-home')">
+
+        Volver
+
     </button>
 
-    <button class="btn-back" onclick="show('scr-home')">
+</div>
+
+<!-- QR -->
+
+<div id="scr-qr" class="screen">
+
+    <h2>QR de la Mascota</h2>
+
+    <div class="card">
+
+        <div id="qrcode"
+        style="
+        display:flex;
+        justify-content:center;
+        margin:20px 0;
+        ">
+
+        </div>
+
+        <p style="text-align:center">
+
+            Escanea este QR para abrir
+            la cartilla digital actualizada
+
+        </p>
+
+    </div>
+
+    <button class="btn-back"
+    onclick="show('scr-home')">
+
         Volver
+
     </button>
 
 </div>
@@ -399,12 +482,13 @@ const db = firebase.database();
 
 let currentUser = null;
 
-// MANTENER SESIÓN
+// SESIÓN PERSISTENTE
 
 firebase.auth()
+
 .setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
-// VERIFICAR SESIÓN
+// DETECTAR SESIÓN
 
 firebase.auth().onAuthStateChanged((user)=>{
 
@@ -520,7 +604,7 @@ function logout(){
 
 }
 
-// GUARDAR MASCOTA
+// GUARDAR DATOS
 
 function saveMascota(){
 
@@ -533,17 +617,24 @@ function saveMascota(){
         document.getElementById('m-esp').value,
 
         edad:
-        document.getElementById('m-edad').value
+        document.getElementById('m-edad').value,
+
+        telefono:
+        document.getElementById('m-tel').value
 
     };
 
-    db.ref('usuarios/' + currentUser.uid + '/mascota')
+    db.ref('usuarios/' + currentUser.uid)
 
-    .set(data)
+    .update({
+
+        mascota:data
+
+    })
 
     .then(()=>{
 
-        alert("¡Datos guardados!");
+        alert("Datos guardados");
 
     });
 
@@ -644,7 +735,7 @@ function loadList(path,divId){
 
 }
 
-// RENDER CARTILLA
+// VER CARTILLA
 
 function renderCartilla(){
 
@@ -658,11 +749,13 @@ function renderCartilla(){
 
             nombre:'---',
             especie:'---',
-            edad:'---'
+            edad:'---',
+            telefono:'---'
 
         };
 
         document.getElementById('c-mascota')
+
         .innerHTML = `
 
         <p>
@@ -670,6 +763,14 @@ function renderCartilla(){
         <strong>Correo:</strong>
 
         ${currentUser.email}
+
+        </p>
+
+        <p>
+
+        <strong>Teléfono:</strong>
+
+        ${m.telefono}
 
         </p>
 
@@ -755,18 +856,32 @@ function renderCartilla(){
 
 }
 
-// PDF
+// GENERAR QR
 
-function downloadPDF(){
+function generateQR(){
 
-    const element =
-    document.getElementById('pdf-area');
+    show('scr-qr');
 
-    html2pdf()
+    const qrDiv =
+    document.getElementById('qrcode');
 
-    .from(element)
+    qrDiv.innerHTML='';
 
-    .save(`Cartilla_Tiko.pdf`);
+    const url =
+
+    'https://TUUSUARIO.github.io/TUREPOSITORIO/cartilla.html?id='
+
+    + currentUser.uid;
+
+    new QRCode(qrDiv,{
+
+        text:url,
+
+        width:220,
+
+        height:220
+
+    });
 
 }
 
