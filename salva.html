@@ -1,418 +1,776 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>TIKO - salva.html (QR + MIT friendly)</title>
 
-<!-- Firebase compat -->
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width,
+initial-scale=1.0,
+maximum-scale=1.0,
+user-scalable=no">
+
+<title>TIKO App - Control Total</title>
+
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
-<!-- html2pdf (genera el PDF) -->
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-<!-- qrcode.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
 <style>
-:root{--p:#1e3a8a;--s:#2563eb;--bg:#f8fafc}
-body{font-family:Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);margin:0;padding:20px}
-.screen{display:none;max-width:740px;margin:18px auto}
-.screen.active{display:block}
-.card{background:#fff;padding:18px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
-h2{text-align:center;color:var(--p)}
-input{width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:8px;box-sizing:border-box}
-button{width:100%;padding:12px;border:none;border-radius:8px;background:var(--p);color:#fff;font-weight:700;cursor:pointer;margin-top:8px}
-.btn-sec{background:var(--s)}
-.btn-back{background:#94a3b8}
-.item{display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #eee}
-.solo-lectura .btn-back,.solo-lectura #btn-pdf-descarga{display:none!important}
-.small{font-size:13px;color:#444}
-.qr-wrap{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.qr-box{background:white;padding:12px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.06)}
-.qr-link{word-break:break-all;color:#0b61d6}
 
-/* ---------- CORRECCIONES PDF: ancho A4 y saltos de página ---------- */
-#pdf-area {
-  width: 210mm;               /* ancho A4 */
-  box-sizing: border-box;
-  padding: 12mm;              /* márgenes interiores en mm */
-  background: white;
-  overflow: visible !important;
+:root{
+
+    --p:#1e3a8a;
+    --s:#2563eb;
+    --bg:#f8fafc;
+
 }
 
-/* evitar que los ítems se rompan a la mitad */
-.item {
-  break-inside: avoid;
-  page-break-inside: avoid;
-  -webkit-column-break-inside: avoid;
+body{
+
+    font-family:'Segoe UI',sans-serif;
+    background:var(--bg);
+    margin:0;
+    padding:0;
+    color:#333;
+
 }
 
-/* clase que fuerza salto de página */
-.page-break {
-  display: block;
-  page-break-after: always;
-  break-after: page;
-  margin: 0;
-  padding: 0;
+.screen{
+
+    display:none;
+    padding:20px;
+    max-width:450px;
+    margin:auto;
+    animation:fadeIn .3s;
+
 }
+
+.active{
+
+    display:block;
+
+}
+
+@keyframes fadeIn{
+
+    from{opacity:0;}
+    to{opacity:1;}
+
+}
+
+.card{
+
+    background:white;
+    padding:20px;
+    border-radius:16px;
+    box-shadow:0 4px 15px rgba(0,0,0,.1);
+    margin-bottom:20px;
+
+}
+
+h2{
+
+    color:var(--p);
+    text-align:center;
+    margin-bottom:20px;
+
+}
+
+input{
+
+    width:100%;
+    padding:12px;
+    margin:8px 0;
+    border:1px solid #ddd;
+    border-radius:8px;
+    box-sizing:border-box;
+    font-size:15px;
+    transition:.2s;
+
+}
+
+input:focus{
+
+    outline:none;
+    border-color:#2563eb;
+
+}
+
+button{
+
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:10px;
+    background:var(--p);
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:10px;
+    transition:.2s;
+    font-size:15px;
+
+}
+
+button:active{
+
+    transform:scale(.98);
+
+}
+
+.btn-sec{
+
+    background:var(--s);
+
+}
+
+.btn-back{
+
+    background:#64748b;
+    margin-top:20px;
+
+}
+
+.item{
+
+    padding:10px;
+    border-bottom:1px solid #eee;
+    font-size:14px;
+    display:flex;
+    justify-content:space-between;
+
+}
+
+.nav-grid{
+
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+
+}
+
+.small{
+
+    text-align:center;
+    font-size:13px;
+    opacity:.7;
+
+}
+
 </style>
+
 </head>
-<body id="main-body">
+
+<body>
 
 <!-- LOGIN -->
+
 <div id="scr-login" class="screen active">
-  <div class="card">
+
     <h2>🐾 TIKO LOGIN</h2>
-    <input id="login-user" placeholder="Usuario (ej. juan_perez)">
-    <button type="button" onclick="login()">Entrar</button>
-  </div>
+
+    <div class="card">
+
+        <input
+        type="email"
+        id="login-email"
+        placeholder="Correo electrónico">
+
+        <input
+        type="password"
+        id="login-pass"
+        placeholder="Contraseña">
+
+        <button onclick="login()">
+            Iniciar Sesión
+        </button>
+
+        <button class="btn-sec" onclick="register()">
+            Registrarse
+        </button>
+
+        <p class="small">
+            Tu sesión permanecerá iniciada
+        </p>
+
+    </div>
+
 </div>
 
 <!-- HOME -->
+
 <div id="scr-home" class="screen">
-  <div class="card">
-    <h2>Panel de Control</h2>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <button type="button" onclick="show('scr-mascota')">🐶 Mascota</button>
-      <button type="button" onclick="show('scr-vacunas')">💉 Vacunas</button>
-      <button type="button" onclick="show('scr-historial')">🩺 Historial</button>
-      <button type="button" class="btn-sec" onclick="show('scr-qr')">🔳 Generar QR</button>
-      <button type="button" class="btn-sec" onclick="renderCartilla()">📋 Ver Cartilla</button>
+
+    <h2>
+        ¡Hola,
+        <span id="display-name"></span>!
+    </h2>
+
+    <div class="nav-grid">
+
+        <button onclick="show('scr-mascota')">
+            🐶 Mascota
+        </button>
+
+        <button onclick="show('scr-vacunas')">
+            💉 Vacunas
+        </button>
+
+        <button onclick="show('scr-historial')">
+            🩺 Historial
+        </button>
+
+        <button class="btn-sec" onclick="renderCartilla()">
+            📋 CARTILLA
+        </button>
+
     </div>
-    <button type="button" class="btn-back" onclick="location.reload()">Salir</button>
-  </div>
+
+    <button class="btn-back" onclick="logout()">
+        Cerrar Sesión
+    </button>
+
 </div>
 
 <!-- MASCOTA -->
+
 <div id="scr-mascota" class="screen">
-  <div class="card">
-    <h2>Datos Mascota</h2>
-    <input id="m-nom" placeholder="Nombre">
-    <input id="m-esp" placeholder="Especie">
-    <input id="m-edad" type="number" placeholder="Edad">
-    <button type="button" onclick="saveMascota()">Guardar</button>
-    <button type="button" class="btn-back" onclick="show('scr-home')">Volver</button>
-  </div>
+
+    <h2>Datos de Mascota</h2>
+
+    <div class="card">
+
+        <input type="text" id="m-nom" placeholder="Nombre">
+
+        <input type="text" id="m-esp" placeholder="Especie">
+
+        <input type="number" id="m-edad" placeholder="Edad">
+
+        <button onclick="saveMascota()">
+            Guardar Datos
+        </button>
+
+    </div>
+
+    <button class="btn-back" onclick="show('scr-home')">
+        Volver
+    </button>
+
 </div>
 
 <!-- VACUNAS -->
+
 <div id="scr-vacunas" class="screen">
-  <div class="card">
-    <h2>Vacunas</h2>
-    <input id="v-nom" placeholder="Vacuna">
-    <input id="v-fec" type="date">
-    <button type="button" onclick="addVacuna()">Añadir</button>
-    <div id="list-v"></div>
-    <button type="button" class="btn-back" onclick="show('scr-home')">Volver</button>
-  </div>
+
+    <h2>Registrar Vacuna</h2>
+
+    <div class="card">
+
+        <input type="text" id="v-nom" placeholder="Vacuna">
+
+        <input type="date" id="v-fec">
+
+        <button onclick="addVacuna()">
+            Añadir
+        </button>
+
+        <div id="list-v" style="margin-top:15px"></div>
+
+    </div>
+
+    <button class="btn-back" onclick="show('scr-home')">
+        Volver
+    </button>
+
 </div>
 
 <!-- HISTORIAL -->
+
 <div id="scr-historial" class="screen">
-  <div class="card">
-    <h2>Enfermedades</h2>
-    <input id="h-enf" placeholder="Enfermedad">
-    <input id="h-fec" type="date">
-    <button type="button" onclick="addHistorial()">Añadir</button>
-    <div id="list-h"></div>
-    <button type="button" class="btn-back" onclick="show('scr-home')">Volver</button>
-  </div>
+
+    <h2>Historial Médico</h2>
+
+    <div class="card">
+
+        <input type="text" id="h-enf" placeholder="Enfermedad">
+
+        <input type="date" id="h-fec">
+
+        <button onclick="addHistorial()">
+            Añadir Registro
+        </button>
+
+        <div id="list-h" style="margin-top:15px"></div>
+
+    </div>
+
+    <button class="btn-back" onclick="show('scr-home')">
+        Volver
+    </button>
+
 </div>
 
 <!-- CARTILLA -->
+
 <div id="scr-cartilla" class="screen">
-  <div class="card" id="pdf-area">
-    <h2>CARTILLA TIKO</h2>
-    <div id="c-mascota" style="margin:10px 0"></div>
-    <h3>💉 Vacunación</h3>
-    <div id="c-vacunas"></div>
-    <h3>🩺 Historial</h3>
-    <div id="c-historial"></div>
-  </div>
 
-  <button type="button" id="btn-pdf-descarga" class="btn-sec" onclick="downloadPDF()">📄 Descargar / Enviar a App</button>
-  <button type="button" class="btn-back" onclick="show('scr-home')">Volver</button>
-</div>
+    <div id="pdf-area"
+    style="background:white;
+    padding:20px;
+    border-radius:10px;">
 
-<!-- QR -->
-<div id="scr-qr" class="screen">
-  <div class="card">
-    <h2>Generar QR - Cartilla</h2>
+        <h1 style="
+        text-align:center;
+        color:#1e3a8a;
+        border-bottom:3px solid #1e3a8a;">
 
-    <div class="small">Generar QR para el usuario actual:</div>
-    <div style="display:flex;gap:8px;margin-top:6px">
-      <button type="button" onclick="generateQRForCurrentUser()">Generar QR para usuario actual</button>
-      <button type="button" class="btn-back" onclick="show('scr-home')">Volver</button>
-    </div>
+            CARTILLA VETERINARIA
 
-    <hr style="margin:12px 0">
+        </h1>
 
-    <div class="small">O ingresa un usuario manualmente (ej. juan_perez) y genera el QR:</div>
-    <input id="qr-user-input" placeholder="usuario_ejemplo">
-    <button type="button" class="btn-sec" onclick="generateQRManual()">Generar QR</button>
+        <div id="c-mascota"
+        style="margin:20px 0;
+        line-height:1.6">
 
-    <div style="margin-top:14px" class="qr-wrap">
-      <div id="qr-container" class="qr-box"></div>
-      <div style="flex:1">
-        <div class="small">URL generada:</div>
-        <div id="qr-url" class="qr-link"></div>
-        <div style="margin-top:8px;display:flex;gap:8px">
-          <button type="button" onclick="downloadQR()" id="btn-download-qr">📥 Descargar QR</button>
-          <button type="button" onclick="openQRInNewTab()">🔍 Abrir enlace en nueva pestaña</button>
         </div>
-      </div>
+
+        <h3 style="
+        background:#f1f5f9;
+        padding:5px">
+
+            💉 REGISTRO DE VACUNACIÓN
+
+        </h3>
+
+        <div id="c-vacunas"></div>
+
+        <h3 style="
+        background:#f1f5f9;
+        padding:5px">
+
+            🩺 HISTORIAL DE ENFERMEDADES
+
+        </h3>
+
+        <div id="c-historial"></div>
+
     </div>
-    <p class="small" style="margin-top:10px;color:#666">
-      Nota: Para que otros dispositivos vean la cartilla, la URL del QR debe ser accesible públicamente (hostea este archivo).
-    </p>
-  </div>
+
+    <button onclick="downloadPDF()">
+        📄 DESCARGAR PDF
+    </button>
+
+    <button class="btn-back" onclick="show('scr-home')">
+        Volver
+    </button>
+
 </div>
 
 <script>
-/* =========== FIREBASE =========== */
-firebase.initializeApp({
-  apiKey: "AIzaSyANX656iqyz6NIo7WX_IvIMnY4w9SQP6sU",
-  databaseURL: "https://tiko-ap-default-rtdb.firebaseio.com/",
-  projectId: "tiko-ap",
-  appId: "1:97455117291:web:1dc88f792d0a74c394bfae"
-});
-const db = firebase.database();
-let currentUser = "";
 
-/* =========== ONLOAD (modo ver por QR) =========== */
-window.onload = function() {
-  const p = new URLSearchParams(location.search);
-  const modo = p.get('modo');
-  const userQR = p.get('user');
-  if (modo === 'ver' && userQR) {
-    currentUser = userQR;
-    document.getElementById('main-body').classList.add('solo-lectura');
-    renderCartilla();
-  }
+// FIREBASE CONFIG
+
+const firebaseConfig = {
+
+  apiKey: "AIzaSyANX656iqyz6NIo7WX_IvIMnY4w9SQP6sU",
+
+  authDomain: "tiko-ap.firebaseapp.com",
+
+  databaseURL: "https://tiko-ap-default-rtdb.firebaseio.com",
+
+  projectId: "tiko-ap",
+
+  storageBucket: "tiko-ap.firebasestorage.app",
+
+  messagingSenderId: "97455117291",
+
+  appId: "1:97455117291:web:1dc88f792d0a74c394bfae"
+
 };
 
-/* =========== UI helpers =========== */
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.database();
+
+let currentUser = null;
+
+// MANTENER SESIÓN
+
+firebase.auth()
+.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
+// VERIFICAR SESIÓN
+
+firebase.auth().onAuthStateChanged((user)=>{
+
+    if(user){
+
+        currentUser = user;
+
+        document.getElementById('display-name')
+        .innerText = user.email;
+
+        show('scr-home');
+
+    }else{
+
+        show('scr-login');
+
+    }
+
+});
+
+// CAMBIAR PANTALLA
+
 function show(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  const el = document.getElementById(id);
-  if (el) el.classList.add('active');
-  if (id === 'scr-vacunas') loadList('vacunas','list-v');
-  if (id === 'scr-historial') loadList('historial','list-h');
+
+    document
+    .querySelectorAll('.screen')
+    .forEach(s=>s.classList.remove('active'));
+
+    document
+    .getElementById(id)
+    .classList.add('active');
+
+    if(id==='scr-vacunas'){
+
+        loadList('vacunas','list-v');
+
+    }
+
+    if(id==='scr-historial'){
+
+        loadList('historial','list-h');
+
+    }
+
 }
 
-/* =========== LOGIN simple =========== */
+// REGISTRO
+
+function register(){
+
+    const email =
+    document.getElementById('login-email')
+    .value.trim();
+
+    const pass =
+    document.getElementById('login-pass')
+    .value.trim();
+
+    if(!email || !pass){
+
+        alert("Completa todos los campos");
+        return;
+
+    }
+
+    firebase.auth()
+
+    .createUserWithEmailAndPassword(email,pass)
+
+    .then(()=>{
+
+        alert("Cuenta creada correctamente");
+
+    })
+
+    .catch((error)=>{
+
+        alert(error.message);
+
+    });
+
+}
+
+// LOGIN
+
 function login(){
-  const raw = document.getElementById('login-user').value.trim();
-  if (!raw) { alert('Escribe un usuario'); return; }
-  currentUser = raw.replace(/\s+/g,'_');
-  show('scr-home');
+
+    const email =
+    document.getElementById('login-email')
+    .value.trim();
+
+    const pass =
+    document.getElementById('login-pass')
+    .value.trim();
+
+    firebase.auth()
+
+    .signInWithEmailAndPassword(email,pass)
+
+    .catch((error)=>{
+
+        alert(error.message);
+
+    });
+
 }
 
-/* =========== DB functions =========== */
-function saveMascota(){
-  if(!currentUser){ alert('Inicia sesión primero'); return; }
-  const nombre = document.getElementById('m-nom').value;
-  const especie = document.getElementById('m-esp').value;
-  const edad = document.getElementById('m-edad').value;
-  db.ref(currentUser + '/mascota').set({ nombre, especie, edad })
-    .then(()=> alert('Mascota guardada'))
-    .catch(err=> alert('Error guardando mascota: ' + err.message));
+// LOGOUT
+
+function logout(){
+
+    firebase.auth().signOut();
+
 }
+
+// GUARDAR MASCOTA
+
+function saveMascota(){
+
+    const data = {
+
+        nombre:
+        document.getElementById('m-nom').value,
+
+        especie:
+        document.getElementById('m-esp').value,
+
+        edad:
+        document.getElementById('m-edad').value
+
+    };
+
+    db.ref('usuarios/' + currentUser.uid + '/mascota')
+
+    .set(data)
+
+    .then(()=>{
+
+        alert("¡Datos guardados!");
+
+    });
+
+}
+
+// AÑADIR VACUNA
 
 function addVacuna(){
-  if(!currentUser){ alert('Inicia sesión primero'); return; }
-  const nom = document.getElementById('v-nom').value;
-  const fec = document.getElementById('v-fec').value;
-  if(!nom || !fec){ alert('Llena ambos campos'); return; }
-  db.ref(currentUser + '/vacunas').push({ nom, fec })
-    .then(()=> { document.getElementById('v-nom').value=''; document.getElementById('v-fec').value=''; loadList('vacunas','list-v'); })
-    .catch(err=> alert('Error añadiendo vacuna: ' + err.message));
+
+    const v = {
+
+        nom:
+        document.getElementById('v-nom').value,
+
+        fec:
+        document.getElementById('v-fec').value
+
+    };
+
+    db.ref('usuarios/' + currentUser.uid + '/vacunas')
+
+    .push(v)
+
+    .then(()=>{
+
+        document.getElementById('v-nom').value='';
+
+        loadList('vacunas','list-v');
+
+    });
+
 }
+
+// AÑADIR HISTORIAL
 
 function addHistorial(){
-  if(!currentUser){ alert('Inicia sesión primero'); return; }
-  const enf = document.getElementById('h-enf').value;
-  const fec = document.getElementById('h-fec').value;
-  if(!enf || !fec){ alert('Llena ambos campos'); return; }
-  db.ref(currentUser + '/historial').push({ enf, fec })
-    .then(()=> { document.getElementById('h-enf').value=''; document.getElementById('h-fec').value=''; loadList('historial','list-h'); })
-    .catch(err=> alert('Error añadiendo historial: ' + err.message));
+
+    const h = {
+
+        enf:
+        document.getElementById('h-enf').value,
+
+        fec:
+        document.getElementById('h-fec').value
+
+    };
+
+    db.ref('usuarios/' + currentUser.uid + '/historial')
+
+    .push(h)
+
+    .then(()=>{
+
+        document.getElementById('h-enf').value='';
+
+        loadList('historial','list-h');
+
+    });
+
 }
 
-function loadList(path, divId){
-  if(!currentUser) return;
-  db.ref(currentUser + '/' + path).once('value')
-    .then(snap=>{
-      let html = '';
-      snap.forEach(child=>{
-        const d = child.val();
-        html += `<div class="item"><span>${d.nom||d.enf}</span><span>${d.fec||''}</span></div>`;
-      });
-      document.getElementById(divId).innerHTML = html || '<div style="padding:8px;color:#666">Sin registros</div>';
-    }).catch(err=> console.error('loadList error',err));
+// CARGAR LISTAS
+
+function loadList(path,divId){
+
+    db.ref('usuarios/' + currentUser.uid + '/' + path)
+
+    .once('value',(snap)=>{
+
+        let html='';
+
+        snap.forEach(child=>{
+
+            const d = child.val();
+
+            html += `
+
+            <div class="item">
+
+                <span>
+                    ${d.nom || d.enf}
+                </span>
+
+                <span>
+                    ${d.fec}
+                </span>
+
+            </div>
+
+            `;
+
+        });
+
+        document.getElementById(divId)
+        .innerHTML = html;
+
+    });
+
 }
+
+// RENDER CARTILLA
 
 function renderCartilla(){
-  if(!currentUser){ alert('Usuario no definido'); return; }
-  db.ref(currentUser).once('value')
-    .then(snap=>{
-      const data = snap.val() || {};
-      const m = data.mascota || {};
-      document.getElementById('c-mascota').innerHTML =
-        `<b>Usuario:</b> ${currentUser}<br><b>Mascota:</b> ${m.nombre||'-'} (${m.especie||'-'}) - ${m.edad||'-'}`;
-      const vHtml = data.vacunas ? Object.values(data.vacunas).map(v=>`<div class="item">💉 <span>${v.nom}</span><span>${v.fec||''}</span></div>`).join('') : '<div style="padding:8px;color:#666">Sin vacunas</div>';
-      document.getElementById('c-vacunas').innerHTML = vHtml;
-      const hHtml = data.historial ? Object.values(data.historial).map(h=>`<div class="item">🩺 <span>${h.enf}</span><span>${h.fec||''}</span></div>`).join('') : '<div style="padding:8px;color:#666">Sin historial</div>';
-      document.getElementById('c-historial').innerHTML = hHtml;
-      show('scr-cartilla');
-    }).catch(err=> alert('Error cargando cartilla: ' + err.message));
+
+    db.ref('usuarios/' + currentUser.uid)
+
+    .once('value',(snap)=>{
+
+        const data = snap.val() || {};
+
+        const m = data.mascota || {
+
+            nombre:'---',
+            especie:'---',
+            edad:'---'
+
+        };
+
+        document.getElementById('c-mascota')
+        .innerHTML = `
+
+        <p>
+
+        <strong>Correo:</strong>
+
+        ${currentUser.email}
+
+        </p>
+
+        <p>
+
+        <strong>Mascota:</strong>
+
+        ${m.nombre}
+
+        |
+
+        <strong>Especie:</strong>
+
+        ${m.especie}
+
+        |
+
+        <strong>Edad:</strong>
+
+        ${m.edad} años
+
+        </p>
+
+        `;
+
+        let vHtml='';
+
+        if(data.vacunas){
+
+            Object.values(data.vacunas)
+
+            .forEach(v=>{
+
+                vHtml += `
+
+                <div class="item">
+
+                    💉 ${v.nom}
+
+                    <span>${v.fec}</span>
+
+                </div>
+
+                `;
+
+            });
+
+        }
+
+        document.getElementById('c-vacunas')
+        .innerHTML = vHtml || 'Sin vacunas';
+
+        let hHtml='';
+
+        if(data.historial){
+
+            Object.values(data.historial)
+
+            .forEach(h=>{
+
+                hHtml += `
+
+                <div class="item">
+
+                    🩺 ${h.enf}
+
+                    <span>${h.fec}</span>
+
+                </div>
+
+                `;
+
+            });
+
+        }
+
+        document.getElementById('c-historial')
+        .innerHTML = hHtml || 'Sin registros';
+
+        show('scr-cartilla');
+
+    });
+
 }
 
-/* ================== PDF (mejor paginado para evitar cortes) ================== */
+// PDF
+
 function downloadPDF(){
-  const element = document.getElementById('pdf-area');
-  if(!element){ alert('No hay contenido'); return; }
 
-  // Opciones
-  const opt = {
-    margin: 8,
-    filename: `TIKO_${currentUser||'user'}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, allowTaint: false },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: ['css', 'legacy'] }
-  };
+    const element =
+    document.getElementById('pdf-area');
 
-  // 1) clonamos el área para no afectar UI visible
-  const clone = element.cloneNode(true);
+    html2pdf()
 
-  // 2) insertar saltos de página cada N items si es necesario
-  const ITEMS_PER_PAGE = 12; // ajusta si ves que aún se corta (prueba 8-16)
-  const items = clone.querySelectorAll('.item');
-  if (items.length > ITEMS_PER_PAGE) {
-    for (let i = ITEMS_PER_PAGE; i < items.length; i += ITEMS_PER_PAGE) {
-      const br = document.createElement('div');
-      br.className = 'page-break';
-      // insertamos el salto antes del item i
-      items[i].parentNode.insertBefore(br, items[i]);
-    }
-  }
+    .from(element)
 
-  // 3) envolver en contenedor temporal
-  const wrapper = document.createElement('div');
-  wrapper.style.background = '#fff';
-  wrapper.style.padding = '0';
-  wrapper.appendChild(clone);
-  document.body.appendChild(wrapper);
+    .save(`Cartilla_Tiko.pdf`);
 
-  // 4) generar PDF con html2pdf a partir del wrapper
-  html2pdf().set(opt).from(wrapper).toPdf().get('pdf').then(function (pdf) {
-    // Si estamos dentro de MIT App Inventor, enviamos la DataURI
-    if (window.AppInventor && typeof AppInventor.setWebViewString === 'function') {
-      const dataUri = pdf.output('datauristring'); // data:application/pdf;base64,...
-      AppInventor.setWebViewString(dataUri);
-      alert('PDF enviado a la app (WebViewString). Guarda el archivo desde MIT App Inventor.');
-    } else {
-      // fallback navegador: descarga directa
-      pdf.save(opt.filename);
-    }
-  }).catch(function(err){
-    alert('Error generando PDF: ' + (err && err.message ? err.message : err));
-  }).finally(function(){
-    // limpiamos el wrapper temporal
-    wrapper.remove();
-  });
 }
 
-/* ================== QR functions ================== */
-/* Construye la URL de cartilla para user (usa la misma ruta actual sin query) */
-function buildCartillaUrlFor(user) {
-  const base = location.href.split('?')[0].split('#')[0];
-  return `${base}?modo=ver&user=${encodeURIComponent(user)}`;
-}
-
-let qrcodeInstance = null;
-
-function clearQR() {
-  const container = document.getElementById('qr-container');
-  container.innerHTML = '';
-  document.getElementById('qr-url').textContent = '';
-  qrcodeInstance = null;
-}
-
-function generateQR(url) {
-  clearQR();
-  const container = document.getElementById('qr-container');
-  qrcodeInstance = new QRCode(container, {
-    text: url,
-    width: 220,
-    height: 220,
-    correctLevel: QRCode.CorrectLevel.H
-  });
-  document.getElementById('qr-url').textContent = url;
-}
-
-function generateQRForCurrentUser() {
-  if (!currentUser) { alert('No hay usuario actual. Haz login o usa la opción manual.'); return; }
-  const url = buildCartillaUrlFor(currentUser);
-  generateQR(url);
-}
-
-function generateQRManual() {
-  const u = document.getElementById('qr-user-input').value.trim();
-  if (!u) { alert('Escribe un usuario para generar el QR'); return; }
-  const url = buildCartillaUrlFor(u.replace(/\s+/g,'_'));
-  generateQR(url);
-}
-
-/* Descargar la imagen del QR */
-function downloadQR() {
-  const container = document.getElementById('qr-container');
-  const img = container.querySelector('img');
-  const canvas = container.querySelector('canvas');
-
-  if (img) {
-    const src = img.src;
-    const a = document.createElement('a');
-    a.href = src;
-    a.download = `TIKO_QR_${Date.now()}.png`;
-    a.click();
-    return;
-  }
-  if (canvas) {
-    const dataUrl = canvas.toDataURL('image/png');
-    const a = document.createElement('a');
-    a.href = dataUrl;
-    a.download = `TIKO_QR_${Date.now()}.png`;
-    a.click();
-    return;
-  }
-  alert('QR no generado todavía');
-}
-
-/* Abrir la URL generada en nueva pestaña */
-function openQRInNewTab() {
-  const url = document.getElementById('qr-url').textContent;
-  if (!url) { alert('Genera primero el QR'); return; }
-  window.open(url, '_blank');
-}
-
-/* =========== Exponer funciones globales =========== */
-window.login = login;
-window.show = show;
-window.saveMascota = saveMascota;
-window.addVacuna = addVacuna;
-window.addHistorial = addHistorial;
-window.loadList = loadList;
-window.renderCartilla = renderCartilla;
-window.downloadPDF = downloadPDF;
-window.generateQRForCurrentUser = generateQRForCurrentUser;
-window.generateQRManual = generateQRManual;
-window.downloadQR = downloadQR;
-window.openQRInNewTab = openQRInNewTab;
 </script>
+
 </body>
 </html>
-
