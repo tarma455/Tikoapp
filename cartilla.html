@@ -14,7 +14,6 @@ content="#1e3a8a">
 <title>Cartilla TIKO</title>
 
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
 <style>
@@ -42,7 +41,7 @@ body{
     padding:20px;
     border-radius:16px;
     box-shadow:0 4px 15px rgba(0,0,0,.1);
-    max-width:500px;
+    max-width:550px;
     margin:auto;
 
 }
@@ -75,7 +74,7 @@ h1{
 .section-title{
 
     background:#f1f5f9;
-    padding:8px;
+    padding:10px;
     border-radius:8px;
     font-weight:bold;
     margin-bottom:10px;
@@ -102,6 +101,24 @@ h1{
 
 }
 
+.info{
+
+    line-height:1.8;
+    font-size:15px;
+
+}
+
+.indicaciones{
+
+    background:#fff7ed;
+    border-left:5px solid #f59e0b;
+    padding:12px;
+    border-radius:10px;
+    margin-top:10px;
+    white-space:pre-line;
+
+}
+
 </style>
 
 </head>
@@ -114,7 +131,8 @@ h1{
         🐾 CARTILLA TIKO
     </h1>
 
-    <div id="infoMascota">
+    <div id="infoMascota"
+    class="info">
 
         Cargando información...
 
@@ -187,16 +205,20 @@ firebase.initializeApp(firebaseConfig);
 
 const db = firebase.database();
 
-// OBTENER UID DEL QR
+// OBTENER DATOS DEL QR
 
 const params =
 new URLSearchParams(window.location.search);
 
-const uid = params.get('id');
+const uid =
+params.get('id');
 
-// VALIDAR UID
+const pet =
+params.get('pet');
 
-if(!uid){
+// VALIDAR
+
+if(!uid || !pet){
 
     document.body.innerHTML = `
 
@@ -206,21 +228,25 @@ if(!uid){
             QR inválido
         </h2>
 
+        <p>
+            No se encontró información válida.
+        </p>
+
     </div>
 
     `;
 
 }else{
 
-    cargarCartilla(uid);
+    cargarCartilla(uid,pet);
 
 }
 
 // CARGAR CARTILLA
 
-function cargarCartilla(uid){
+function cargarCartilla(uid,pet){
 
-    db.ref('usuarios/' + uid)
+    db.ref('usuarios/' + uid + '/mascotas/' + pet)
 
     .once('value',(snap)=>{
 
@@ -244,7 +270,7 @@ function cargarCartilla(uid){
 
         }
 
-        const m = data.mascota || {};
+        // DATOS MASCOTA
 
         document.getElementById('infoMascota')
 
@@ -252,35 +278,52 @@ function cargarCartilla(uid){
 
         <p>
 
-        <strong>Mascota:</strong>
+        <strong>👤 Dueño:</strong>
 
-        ${m.nombre || '---'}
-
-        </p>
-
-        <p>
-
-        <strong>Especie:</strong>
-
-        ${m.especie || '---'}
+        ${data.dueno || '---'}
 
         </p>
 
         <p>
 
-        <strong>Edad:</strong>
+        <strong>📞 Teléfono:</strong>
 
-        ${m.edad || '---'} años
+        ${data.telefono || '---'}
 
         </p>
 
         <p>
 
-        <strong>Teléfono:</strong>
+        <strong>🐶 Mascota:</strong>
 
-        ${m.telefono || '---'}
+        ${data.nombre || '---'}
 
         </p>
+
+        <p>
+
+        <strong>🦴 Especie:</strong>
+
+        ${data.especie || '---'}
+
+        </p>
+
+        <p>
+
+        <strong>🎂 Edad:</strong>
+
+        ${data.edad || '---'} años
+
+        </p>
+
+        <div class="indicaciones">
+
+        <strong>📋 Indicaciones:</strong>
+        <br><br>
+
+        ${data.indicaciones || 'Sin indicaciones registradas'}
+
+        </div>
 
         `;
 
@@ -320,7 +363,7 @@ function cargarCartilla(uid){
 
         document.getElementById('vacunas')
 
-        .innerHTML = vacunasHTML || 'Sin vacunas';
+        .innerHTML = vacunasHTML || 'Sin vacunas registradas';
 
         // HISTORIAL
 
@@ -358,7 +401,7 @@ function cargarCartilla(uid){
 
         document.getElementById('historial')
 
-        .innerHTML = historialHTML || 'Sin registros';
+        .innerHTML = historialHTML || 'Sin historial médico';
 
     });
 
