@@ -15,11 +15,8 @@ user-scalable=no">
 <title>TIKO App - Control Total</title>
 
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <style>
@@ -83,7 +80,7 @@ h2{
 
 }
 
-input{
+input, textarea, select{
 
     width:100%;
     padding:12px;
@@ -92,11 +89,19 @@ input{
     border-radius:8px;
     box-sizing:border-box;
     font-size:15px;
-    transition:.2s;
 
 }
 
-input:focus{
+textarea{
+
+    min-height:100px;
+    resize:none;
+
+}
+
+input:focus,
+textarea:focus,
+select:focus{
 
     outline:none;
     border-color:#2563eb;
@@ -114,14 +119,7 @@ button{
     font-weight:bold;
     cursor:pointer;
     margin-top:10px;
-    transition:.2s;
     font-size:15px;
-
-}
-
-button:active{
-
-    transform:scale(.98);
 
 }
 
@@ -164,12 +162,6 @@ button:active{
 
 }
 
-#qrcode canvas{
-
-    border-radius:10px;
-
-}
-
 </style>
 
 </head>
@@ -202,10 +194,6 @@ button:active{
             Registrarse
         </button>
 
-        <p class="small">
-            Tu sesión permanecerá iniciada
-        </p>
-
     </div>
 
 </div>
@@ -218,6 +206,17 @@ button:active{
         ¡Hola,
         <span id="display-name"></span>!
     </h2>
+
+    <div class="card">
+
+        <label><strong>Selecciona Mascota</strong></label>
+
+        <select id="mascota-select"
+        onchange="changeMascota()">
+
+        </select>
+
+    </div>
 
     <div class="nav-grid">
 
@@ -258,6 +257,16 @@ button:active{
     <div class="card">
 
         <input type="text"
+        id="m-dueno"
+        placeholder="Nombre del dueño">
+
+        <input type="tel"
+        id="m-tel"
+        placeholder="Teléfono">
+
+        <hr>
+
+        <input type="text"
         id="m-nom"
         placeholder="Nombre de la mascota">
 
@@ -269,16 +278,12 @@ button:active{
         id="m-edad"
         placeholder="Edad">
 
-        <input type="text"
-        id="m-dueno"
-        placeholder="Nombre del dueño">
-
-        <input type="tel"
-        id="m-tel"
-        placeholder="Teléfono de contacto">
+        <textarea
+        id="m-ind"
+        placeholder="Indicaciones, tratamientos o cuidados especiales"></textarea>
 
         <button onclick="saveMascota()">
-            Guardar Datos
+            Guardar Mascota
         </button>
 
     </div>
@@ -311,10 +316,7 @@ button:active{
             Añadir
         </button>
 
-        <div id="list-v"
-        style="margin-top:15px">
-
-        </div>
+        <div id="list-v"></div>
 
     </div>
 
@@ -346,10 +348,7 @@ button:active{
             Añadir Registro
         </button>
 
-        <div id="list-h"
-        style="margin-top:15px">
-
-        </div>
+        <div id="list-h"></div>
 
     </div>
 
@@ -367,11 +366,7 @@ button:active{
 <div id="scr-cartilla" class="screen">
 
     <div id="pdf-area"
-    style="
-    background:white;
-    padding:20px;
-    border-radius:10px;
-    ">
+    style="background:white;padding:20px;border-radius:10px;">
 
         <h1 style="
         text-align:center;
@@ -383,31 +378,18 @@ button:active{
         </h1>
 
         <div id="c-mascota"
-        style="
-        margin:20px 0;
-        line-height:1.6;
-        ">
+        style="margin:20px 0;line-height:1.8;">
 
         </div>
 
-        <h3 style="
-        background:#f1f5f9;
-        padding:5px;
-        ">
-
+        <h3 style="background:#f1f5f9;padding:5px;">
             💉 REGISTRO DE VACUNACIÓN
-
         </h3>
 
         <div id="c-vacunas"></div>
 
-        <h3 style="
-        background:#f1f5f9;
-        padding:5px;
-        ">
-
-            🩺 HISTORIAL DE ENFERMEDADES
-
+        <h3 style="background:#f1f5f9;padding:5px;">
+            🩺 HISTORIAL MÉDICO
         </h3>
 
         <div id="c-historial"></div>
@@ -435,17 +417,9 @@ button:active{
         style="
         display:flex;
         justify-content:center;
-        margin:20px 0;
-        ">
+        margin:20px 0;">
 
         </div>
-
-        <p style="text-align:center">
-
-            Escanea este QR para abrir
-            la cartilla digital actualizada
-
-        </p>
 
     </div>
 
@@ -460,22 +434,14 @@ button:active{
 
 <script>
 
-// FIREBASE CONFIG
-
 const firebaseConfig = {
 
   apiKey: "AIzaSyANX656iqyz6NIo7WX_IvIMnY4w9SQP6sU",
-
   authDomain: "tiko-ap.firebaseapp.com",
-
   databaseURL: "https://tiko-ap-default-rtdb.firebaseio.com",
-
   projectId: "tiko-ap",
-
   storageBucket: "tiko-ap.firebasestorage.app",
-
   messagingSenderId: "97455117291",
-
   appId: "1:97455117291:web:1dc88f792d0a74c394bfae"
 
 };
@@ -485,14 +451,10 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 let currentUser = null;
-
-// SESIÓN PERSISTENTE
+let currentPetId = null;
 
 firebase.auth()
-
 .setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-
-// DETECTAR SESIÓN
 
 firebase.auth().onAuthStateChanged((user)=>{
 
@@ -503,6 +465,8 @@ firebase.auth().onAuthStateChanged((user)=>{
         document.getElementById('display-name')
         .innerText = user.email;
 
+        loadMascotas();
+
         show('scr-home');
 
     }else{
@@ -512,8 +476,6 @@ firebase.auth().onAuthStateChanged((user)=>{
     }
 
 });
-
-// CAMBIAR PANTALLA
 
 function show(id){
 
@@ -539,68 +501,43 @@ function show(id){
 
 }
 
-// REGISTRO
-
 function register(){
 
     const email =
-    document.getElementById('login-email')
-    .value.trim();
+    document.getElementById('login-email').value;
 
     const pass =
-    document.getElementById('login-pass')
-    .value.trim();
-
-    if(!email || !pass){
-
-        alert("Completa todos los campos");
-        return;
-
-    }
+    document.getElementById('login-pass').value;
 
     firebase.auth()
-
     .createUserWithEmailAndPassword(email,pass)
 
-    .then(()=>{
-
-        alert("Cuenta creada correctamente");
-
-    })
-
-    .catch((error)=>{
+    .catch(error=>{
 
         alert(error.message);
 
     });
 
 }
-
-// LOGIN
 
 function login(){
 
     const email =
-    document.getElementById('login-email')
-    .value.trim();
+    document.getElementById('login-email').value;
 
     const pass =
-    document.getElementById('login-pass')
-    .value.trim();
+    document.getElementById('login-pass').value;
 
     firebase.auth()
-
     .signInWithEmailAndPassword(email,pass)
 
-    .catch((error)=>{
+    .catch(error=>{
 
         alert(error.message);
 
     });
 
 }
-
-// LOGOUT
 
 function logout(){
 
@@ -608,11 +545,16 @@ function logout(){
 
 }
 
-// GUARDAR DATOS
-
 function saveMascota(){
 
-    const data = {
+    const ref =
+    db.ref('usuarios/' + currentUser.uid + '/mascotas');
+
+    const newRef = currentPetId
+    ? ref.child(currentPetId)
+    : ref.push();
+
+    newRef.set({
 
         nombre:
         document.getElementById('m-nom').value,
@@ -627,31 +569,84 @@ function saveMascota(){
         document.getElementById('m-dueno').value,
 
         telefono:
-        document.getElementById('m-tel').value
+        document.getElementById('m-tel').value,
 
-    };
-
-    db.ref('usuarios/' + currentUser.uid)
-
-    .update({
-
-        mascota:data
+        indicaciones:
+        document.getElementById('m-ind').value
 
     })
 
     .then(()=>{
 
-        alert("Datos guardados");
+        alert("Mascota guardada");
+
+        loadMascotas();
 
     });
 
 }
 
-// AÑADIR VACUNA
+function loadMascotas(){
+
+    db.ref('usuarios/' + currentUser.uid + '/mascotas')
+
+    .once('value',(snap)=>{
+
+        const select =
+        document.getElementById('mascota-select');
+
+        select.innerHTML='';
+
+        snap.forEach(child=>{
+
+            const pet = child.val();
+
+            select.innerHTML += `
+
+            <option value="${child.key}">
+
+                ${pet.nombre}
+
+            </option>
+
+            `;
+
+        });
+
+        if(snap.exists()){
+
+            currentPetId =
+            Object.keys(snap.val())[0];
+
+            select.value = currentPetId;
+
+        }
+
+    });
+
+}
+
+function changeMascota(){
+
+    currentPetId =
+    document.getElementById('mascota-select').value;
+
+}
 
 function addVacuna(){
 
-    const v = {
+    if(!currentPetId){
+
+        alert("Selecciona una mascota");
+        return;
+
+    }
+
+    db.ref('usuarios/' + currentUser.uid +
+    '/mascotas/' + currentPetId +
+    '/vacunas')
+
+    .push({
 
         nom:
         document.getElementById('v-nom').value,
@@ -659,15 +654,9 @@ function addVacuna(){
         fec:
         document.getElementById('v-fec').value
 
-    };
-
-    db.ref('usuarios/' + currentUser.uid + '/vacunas')
-
-    .push(v)
+    })
 
     .then(()=>{
-
-        document.getElementById('v-nom').value='';
 
         loadList('vacunas','list-v');
 
@@ -675,11 +664,20 @@ function addVacuna(){
 
 }
 
-// AÑADIR HISTORIAL
-
 function addHistorial(){
 
-    const h = {
+    if(!currentPetId){
+
+        alert("Selecciona una mascota");
+        return;
+
+    }
+
+    db.ref('usuarios/' + currentUser.uid +
+    '/mascotas/' + currentPetId +
+    '/historial')
+
+    .push({
 
         enf:
         document.getElementById('h-enf').value,
@@ -687,15 +685,9 @@ function addHistorial(){
         fec:
         document.getElementById('h-fec').value
 
-    };
-
-    db.ref('usuarios/' + currentUser.uid + '/historial')
-
-    .push(h)
+    })
 
     .then(()=>{
-
-        document.getElementById('h-enf').value='';
 
         loadList('historial','list-h');
 
@@ -703,11 +695,13 @@ function addHistorial(){
 
 }
 
-// CARGAR LISTAS
-
 function loadList(path,divId){
 
-    db.ref('usuarios/' + currentUser.uid + '/' + path)
+    if(!currentPetId) return;
+
+    db.ref('usuarios/' + currentUser.uid +
+    '/mascotas/' + currentPetId +
+    '/' + path)
 
     .once('value',(snap)=>{
 
@@ -742,78 +736,50 @@ function loadList(path,divId){
 
 }
 
-// VER CARTILLA
-
 function renderCartilla(){
 
-    db.ref('usuarios/' + currentUser.uid)
+    if(!currentPetId){
+
+        alert("Selecciona mascota");
+        return;
+
+    }
+
+    db.ref('usuarios/' + currentUser.uid +
+    '/mascotas/' + currentPetId)
 
     .once('value',(snap)=>{
 
-        const data = snap.val() || {};
-
-        const m = data.mascota || {
-
-            nombre:'---',
-            especie:'---',
-            edad:'---',
-            telefono:'---',
-            dueno:'---'
-
-        };
+        const m = snap.val();
 
         document.getElementById('c-mascota')
-
         .innerHTML = `
 
-        <p>
+        <p><strong>Dueño:</strong>
+        ${m.dueno}</p>
 
-        <strong>Dueño:</strong>
+        <p><strong>Teléfono:</strong>
+        ${m.telefono}</p>
 
-        ${m.dueno}
+        <p><strong>Mascota:</strong>
+        ${m.nombre}</p>
 
-        </p>
+        <p><strong>Especie:</strong>
+        ${m.especie}</p>
 
-        <p>
+        <p><strong>Edad:</strong>
+        ${m.edad} años</p>
 
-        <strong>Teléfono:</strong>
-
-        ${m.telefono}
-
-        </p>
-
-        <p>
-
-        <strong>Mascota:</strong>
-
-        ${m.nombre}
-
-        </p>
-
-        <p>
-
-        <strong>Especie:</strong>
-
-        ${m.especie}
-
-        </p>
-
-        <p>
-
-        <strong>Edad:</strong>
-
-        ${m.edad} años
-
-        </p>
+        <p><strong>Indicaciones:</strong><br>
+        ${m.indicaciones || 'Sin indicaciones'}</p>
 
         `;
 
         let vHtml='';
 
-        if(data.vacunas){
+        if(m.vacunas){
 
-            Object.values(data.vacunas)
-
+            Object.values(m.vacunas)
             .forEach(v=>{
 
                 vHtml += `
@@ -837,10 +803,9 @@ function renderCartilla(){
 
         let hHtml='';
 
-        if(data.historial){
+        if(m.historial){
 
-            Object.values(data.historial)
-
+            Object.values(m.historial)
             .forEach(h=>{
 
                 hHtml += `
@@ -860,7 +825,7 @@ function renderCartilla(){
         }
 
         document.getElementById('c-historial')
-        .innerHTML = hHtml || 'Sin registros';
+        .innerHTML = hHtml || 'Sin historial';
 
         show('scr-cartilla');
 
@@ -868,9 +833,14 @@ function renderCartilla(){
 
 }
 
-// GENERAR QR
-
 function generateQR(){
+
+    if(!currentPetId){
+
+        alert("Selecciona mascota");
+        return;
+
+    }
 
     show('scr-qr');
 
@@ -883,14 +853,15 @@ function generateQR(){
 
     'https://tarma455.github.io/Tikoapp/cartilla.html?id='
 
-    + currentUser.uid;
+    + currentUser.uid +
+
+    '&pet=' + currentPetId;
 
     new QRCode(qrDiv,{
 
         text:url,
 
         width:220,
-
         height:220
 
     });
@@ -898,9 +869,6 @@ function generateQR(){
 }
 
 </script>
-
-</body>
-</html>
 
 </body>
 </html>
